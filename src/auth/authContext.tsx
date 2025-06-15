@@ -7,17 +7,26 @@ export const AuthContext = createContext<any>(null);
 export const AuthProvider = ({ children }: any) => {
   const [userToken, setUserToken] = useState<string | null>(null);
 
-  const login = async (token: string) => {
-    await AsyncStorage.setItem('token', token);
-    setUserToken(token);
-  };
+const loginUser = async (email: string, password: string) => {
+  try {
+    const response = await axios.post('/auth/login', { email, password });
+    const token = response.data.token;
+    if (token) {
+      await AsyncStorage.setItem('token', token);
+      setUserToken(token);
+    }
+    console.log('Login successful:', response.data);
+  } catch (error: any) {
+    console.error('Login error:', error.response?.data || error.message);
+    throw error;
+  }
+};
 
   const logout = async () => {
     await AsyncStorage.removeItem('token');
     setUserToken(null);
   };
 
-  // Add registerUser function here
   const registerUser = async (email: string, password: string) => {
     try {
       const response = await axios.post('/auth/register', { email, password });
@@ -29,7 +38,7 @@ export const AuthProvider = ({ children }: any) => {
       console.log('Registered successfully', response.data);
     } catch (error: any) {
       console.error('Registration error:', error.response?.data || error.message);
-      throw error; // Let the caller (RegisterScreen) handle the error
+      throw error;
     }
   };
 
@@ -42,7 +51,7 @@ export const AuthProvider = ({ children }: any) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ userToken, login, logout, registerUser }}>
+    <AuthContext.Provider value={{ userToken, loginUser, logout, registerUser }}>
       {children}
     </AuthContext.Provider>
   );
