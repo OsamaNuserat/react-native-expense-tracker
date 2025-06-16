@@ -3,5 +3,5 @@ export type RootStackParamList = {
   Register: undefined;
   Home: undefined;
   ShortcutInstructions: undefined;
-  ParseSMS: undefined;
+  Messages: undefined;
 };
