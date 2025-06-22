@@ -7,6 +7,7 @@ type Props = {
     content: string;
     createdAt: string;
     userId: number;
+    category?: string;
   };
 };
 
@@ -14,6 +15,9 @@ export default function MessageItem({ message }: Props) {
   return (
     <View style={styles.container}>
       <Text style={styles.content}>{message.content}</Text>
+      {message.category && (
+        <Text style={styles.category}>Category: {message.category}</Text>
+      )}
       {message.createdAt ? (
         <Text style={styles.date}>{new Date(message.createdAt).toLocaleString()}</Text>
       ) : null}
@@ -29,6 +33,12 @@ const styles = StyleSheet.create({
   },
   content: {
     fontSize: 16,
+  },
+  category: {
+    marginTop: 4,
+    fontSize: 12,
+    fontStyle: 'italic',
+    color: '#333',
   },
   date: {
     fontSize: 12,

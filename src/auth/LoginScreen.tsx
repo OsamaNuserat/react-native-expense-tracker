@@ -4,12 +4,7 @@ import { TextInput, Button, Text } from 'react-native-paper';
 import { AuthContext } from './authContext';
 import Toast from 'react-native-toast-message';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-
-export type RootStackParamList = {
-  Login: undefined;
-  Register: undefined;
-  Home: undefined;
-};
+import { RootStackParamList } from '../types';
 
 type RegisterScreenNavigationProp = NavigationProp<RootStackParamList, 'Login'>;
 
@@ -37,6 +32,11 @@ export default function LoginScreen() {
         text1: 'Success',
         text2: 'Logged in successfully!',
       });
+      navigation.reset({
+      index: 0,
+      routes: [{ name: 'Home' }],
+    });
+
     } catch {
       Toast.show({
         type: 'error',
