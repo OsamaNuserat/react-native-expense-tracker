@@ -2,12 +2,9 @@ import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text, TextInput, Button, Card } from 'react-native-paper';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 
 import { useAuth } from '../hooks/useAuth';
-import { RootStackParamList } from '../types';
-
-type LoginScreenNavigationProp = NavigationProp<RootStackParamList, 'Login'>;
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -15,7 +12,7 @@ export default function LoginScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   
-  const navigation = useNavigation<LoginScreenNavigationProp>();
+  const navigation = useNavigation();
   const { login } = useAuth();
 
   const handleLogin = async () => {
@@ -113,7 +110,7 @@ export default function LoginScreen() {
 
             <Button
               mode="text"
-              onPress={() => navigation.navigate('Register')}
+              onPress={() => navigation.navigate('Register' as never)}
               style={styles.linkButton}
               textColor="#FF6384"
             >

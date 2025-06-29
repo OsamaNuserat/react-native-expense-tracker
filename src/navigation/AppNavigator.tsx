@@ -1,67 +1,89 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Button, View, StyleSheet } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ActivityIndicator, View } from 'react-native';
+
 import LoginScreen from '../auth/LoginScreen';
 import RegisterScreen from '../auth/RegisterScreen';
-import HomeScreen from '../screens/HomeScreen';
 import ShortcutInstructions from '../screens/ShortcutInstructions';
 import MessagesScreen from '../screens/MessagesScreen';
-import { RootStackParamList } from '../types';
-import StatsScreen from '../screens/StatsScreen';
+import CliqCategoryScreen from '../screens/CliqCategoryScreen';
+import MessageDetails from '../screens/MessageDetails';
+import CategoriesScreen from '../screens/CategoriesScreen';
+import BudgetSettingsScreen from '../screens/BudgetSettingsScreen';
+import AppTabs from './AppTabs';
 
+import { RootStackParamList } from '../types';
+import { useAuth } from '../hooks/useAuth';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function AppNavigator() {
-  const logout = async () => {
-    await AsyncStorage.removeItem('token');
-    // force reload or navigate to login
-  };
+    const { userToken, isLoading } = useAuth();
 
-  return (
-    <Stack.Navigator initialRouteName='Login'>
-      <Stack.Screen name='Login' component={LoginScreen} />
-      <Stack.Screen name='Register' component={RegisterScreen} />
-      <Stack.Screen
-        name='Home'
-        component={HomeScreen}
-        options={({ navigation }) => ({
-          title: 'Home',
-          headerRight: () => (
-            <View style={styles.headerButtons}>
-              <Button
-                onPress={() => navigation.navigate('Messages')}
-                title='Messages'
-                color='#007bff'
-              />
-              <Button
-                onPress={logout}
-                title='Logout'
-                color='#d9534f'
-              />
+    if (isLoading) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" />
             </View>
-          ),
-        })}
-      />
-      <Stack.Screen
-        name='ShortcutInstructions'
-        component={ShortcutInstructions}
-        options={{ title: 'Shortcut Instructions' }}
-      />
-      <Stack.Screen
-        name='Messages'
-        component={MessagesScreen}
-        options={{ title: 'All Messages' }}
-      />
-    </Stack.Navigator>
-  );
+        );
+    }
+
+    return (
+        <Stack.Navigator>
+            {userToken ? (
+                // Authenticated user stack
+                <Stack.Group>
+                    <Stack.Screen 
+                        name="Home" 
+                        component={AppTabs} 
+                        options={{ headerShown: false }} 
+                    />
+                    <Stack.Screen
+                        name="ShortcutInstructions"
+                        component={ShortcutInstructions}
+                        options={{ title: 'Shortcut Instructions' }}
+                    />
+                    <Stack.Screen 
+                        name="Messages" 
+                        component={MessagesScreen} 
+                        options={{ title: 'All Messages' }} 
+                    />
+                    <Stack.Screen 
+                        name="MessageDetails" 
+                        component={MessageDetails} 
+                        options={{ title: 'Message Details' }} 
+                    />
+                    <Stack.Screen
+                        name="CliqCategory"
+                        component={CliqCategoryScreen}
+                        options={{ title: 'Categorize CliQ Message' }}
+                    />
+                    <Stack.Screen
+                        name="Categories"
+                        component={CategoriesScreen}
+                        options={{ title: 'Manage Categories' }}
+                    />
+                    <Stack.Screen
+                        name="BudgetSettings"
+                        component={BudgetSettingsScreen}
+                        options={{ title: 'Budget Settings' }}
+                    />
+                </Stack.Group>
+            ) : (
+                // Authentication stack
+                <Stack.Group>
+                    <Stack.Screen 
+                        name="Login" 
+                        component={LoginScreen} 
+                        options={{ headerShown: false }} 
+                    />
+                    <Stack.Screen 
+                        name="Register" 
+                        component={RegisterScreen} 
+                        options={{ headerShown: false }} 
+                    />
+                </Stack.Group>
+            )}
+        </Stack.Navigator>
+    );
 }
-
-
-const styles = StyleSheet.create({
-  headerButtons: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-});

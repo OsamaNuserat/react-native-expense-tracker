@@ -1,32 +1,84 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { Card } from 'react-native-paper';
+import { CategorySummary } from '../types';
 
-const categories = [
-  { name: 'Car', amount: 49, color: '#FF6384' },
-  { name: 'Other', amount: 25.7, color: '#FFCD56' },
-  { name: 'Social Life', amount: 17.6, color: '#FF9F40' },
-  { name: 'Food', amount: 6.45, color: '#FFE600' },
-  { name: 'Cloud & Domain', amount: 6.3, color: '#00C49F' },
-  { name: 'Groceries', amount: 1.4, color: '#4BC0C0' },
-];
+interface CategoryBreakdownProps {
+  expenses?: CategorySummary[];
+  incomes?: CategorySummary[];
+}
 
-export default function CategoryBreakdown() {
+const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'];
+
+export default function CategoryBreakdown({ expenses, incomes }: CategoryBreakdownProps) {
+  const expenseItems = expenses || [];
+  const incomeItems = incomes || [];
+
+  if (expenseItems.length === 0 && incomeItems.length === 0) {
+    return (
+      <Card style={styles.card}>
+        <Card.Content>
+          <Text style={styles.title}>Category Breakdown</Text>
+          <Text style={styles.noData}>No data available</Text>
+        </Card.Content>
+      </Card>
+    );
+  }
+
   return (
-    <View style={styles.container}>
-      {categories.map((cat, index) => (
-        <View key={index} style={styles.row}>
-          <View style={[styles.colorDot, { backgroundColor: cat.color }]} />
-          <Text style={styles.name}>{cat.name}</Text>
-          <Text style={styles.amount}>JD {cat.amount}</Text>
-        </View>
-      ))}
-    </View>
+    <Card style={styles.card}>
+      <Card.Content>
+        <Text style={styles.title}>Category Breakdown</Text>
+        
+        {expenseItems.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Expenses</Text>
+            {expenseItems.map((item, index) => (
+              <View key={`expense-${index}`} style={styles.row}>
+                <View style={[styles.colorDot, { backgroundColor: colors[index % colors.length] }]} />
+                <Text style={styles.name}>{item.category}</Text>
+                <Text style={styles.amount}>JD {item.total.toFixed(2)}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {incomeItems.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Income</Text>
+            {incomeItems.map((item, index) => (
+              <View key={`income-${index}`} style={styles.row}>
+                <View style={[styles.colorDot, { backgroundColor: colors[(index + expenseItems.length) % colors.length] }]} />
+                <Text style={styles.name}>{item.category}</Text>
+                <Text style={[styles.amount, { color: '#4CAF50' }]}>JD {item.total.toFixed(2)}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+      </Card.Content>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    marginTop: 20,
+  card: {
+    backgroundColor: '#2A2A2A',
+    marginBottom: 15,
+  },
+  title: {
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 15,
+  },
+  section: {
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    color: '#AAA',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 10,
   },
   row: {
     flexDirection: 'row',
@@ -47,8 +99,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   amount: {
-    color: '#FFF',
+    color: '#FF5722',
     fontSize: 16,
     fontWeight: '600',
+  },
+  noData: {
+    color: '#AAA',
+    textAlign: 'center',
+    marginTop: 20,
   },
 });

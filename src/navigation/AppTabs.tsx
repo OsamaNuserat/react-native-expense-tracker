@@ -1,8 +1,10 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/Ionicons';
+
 import HomeScreen from '../screens/HomeScreen';
 import TransactionsScreen from '../screens/TransactionsScreen';
+import StatsScreen from '../screens/StatsScreen';
 import MoreScreen from '../screens/MoreScreen';
 
 const Tab = createBottomTabNavigator();
@@ -24,7 +26,8 @@ export default function AppTabs() {
         tabBarIcon: ({ color, size }) => {
           let iconName = 'apps';
 
-          if (route.name === 'Stats') iconName = 'stats-chart';
+          if (route.name === 'Dashboard') iconName = 'home';
+          else if (route.name === 'Stats') iconName = 'stats-chart';
           else if (route.name === 'Transactions') iconName = 'list';
           else if (route.name === 'More') iconName = 'ellipsis-horizontal';
 
@@ -32,9 +35,26 @@ export default function AppTabs() {
         },
       })}
     >
-      <Tab.Screen name="Stats" component={HomeScreen} />
-      <Tab.Screen name="Transactions" component={TransactionsScreen} />
-      <Tab.Screen name="More" component={MoreScreen} />
+      <Tab.Screen 
+        name="Dashboard" 
+        component={HomeScreen} 
+        options={{ title: 'Dashboard' }}
+      />
+      <Tab.Screen 
+        name="Stats" 
+        component={StatsScreen} 
+        options={{ title: 'Statistics' }}
+      />
+      <Tab.Screen 
+        name="Transactions" 
+        component={TransactionsScreen} 
+        options={{ title: 'Transactions' }}
+      />
+      <Tab.Screen 
+        name="More" 
+        component={MoreScreen} 
+        options={{ title: 'More' }}
+      />
     </Tab.Navigator>
   );
 }
