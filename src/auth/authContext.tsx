@@ -46,15 +46,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Load stored authentication data on app start
   useEffect(() => {
     const loadStoredAuth = async () => {
+      console.log('🔐 Loading stored authentication data...');
       try {
         const [accessToken, userData] = await Promise.all([
           tokenStorage.getAccessToken(),
           tokenStorage.getUserData()
         ]);
 
+        console.log('🔑 Stored auth status:', {
+          hasAccessToken: !!accessToken,
+          hasUserData: !!userData,
+          userId: userData?.id
+        });
+
         if (accessToken && userData) {
           setUserToken(accessToken);
           setUser(userData);
+          console.log('✅ Authentication loaded successfully');
+        } else {
+          console.log('❌ No valid stored authentication found');
         }
       } catch (error) {
         console.error('Error loading stored auth:', error);
@@ -193,9 +203,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const refreshUserData = async () => {
     try {
-      const userData = await authApi.getProfile();
-      setUser(userData);
-      await tokenStorage.setUserData(userData);
+      // Note: /api/auth/me endpoint doesn't exist on backend
+      // For now, we'll keep the current user data as is
+      console.log('refreshUserData: Using cached user data');
+      // const userData = await authApi.getProfile();
+      // setUser(userData);
+      // await tokenStorage.setUserData(userData);
     } catch (error) {
       console.error('Error refreshing user data:', error);
     }

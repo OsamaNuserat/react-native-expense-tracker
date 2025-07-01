@@ -9,7 +9,6 @@ import { useNavigation } from '@react-navigation/native';
 import { fetchExpensesSummary, fetchIncomesSummary } from '../api/summaryApi';
 import { getSurvivalBudget } from '../api/budgetApi';
 import { formatCurrency } from '../utils/formatters';
-import { BudgetSummary } from '../types';
 
 export default function HomeScreen() {
   const navigation = useNavigation();
@@ -24,18 +23,11 @@ export default function HomeScreen() {
     queryFn: fetchIncomesSummary,
   });
 
-  const { data: budgetData, isLoading: budgetLoading, refetch: refetchBudget, error: budgetError } = useQuery<BudgetSummary, Error>({
+  const { data: budgetData, isLoading: budgetLoading, refetch: refetchBudget } = useQuery({
     queryKey: ['survivalBudget'],
     queryFn: getSurvivalBudget,
     retry: false,
   });
-
-  // Log budget errors only if they're not the expected "No active budget" error
-  React.useEffect(() => {
-    if (budgetError && !(budgetError as any)?.response?.data?.message?.includes("No active budget")) {
-      console.error('Budget API Error:', budgetError);
-    }
-  }, [budgetError]);
 
   const onRefresh = async () => {
     await Promise.all([refetchExpenses(), refetchIncomes(), refetchBudget()]);

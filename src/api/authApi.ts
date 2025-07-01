@@ -30,7 +30,8 @@ export const logoutAllDevices = async (): Promise<{ message: string }> => {
   return response.data;
 };
 
-export const getProfile = async () => {
-  const response = await axiosInstance.get('/api/auth/me');
-  return response.data;
-};
+// Note: /api/auth/me endpoint doesn't exist on backend
+// export const getProfile = async () => {
+//   const response = await axiosInstance.get('/api/auth/me');
+//   return response.data;
+// };

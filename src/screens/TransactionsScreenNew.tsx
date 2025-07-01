@@ -15,39 +15,23 @@ export default function TransactionsScreen() {
   const [selectedType, setSelectedType] = useState<'all' | 'expenses' | 'incomes'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { data: expenses, isLoading: expensesLoading, error: expensesError } = useQuery<Expense[]>({
+  const { data: expenses, isLoading: expensesLoading } = useQuery<Expense[]>({
     queryKey: ['expenses'],
     queryFn: fetchExpenses,
-    retry: false,
   });
 
-  const { data: incomes, isLoading: incomesLoading, error: incomesError } = useQuery<Income[]>({
+  const { data: incomes, isLoading: incomesLoading } = useQuery<Income[]>({
     queryKey: ['incomes'],
     queryFn: fetchIncomes,
-    retry: false,
   });
 
-  // Handle API errors gracefully
-  React.useEffect(() => {
-    if (expensesError && !(expensesError as any)?.response?.data?.includes?.("Cannot GET /api/expenses")) {
-      console.error('Expenses API Error:', expensesError);
-    }
-  }, [expensesError]);
-
-  React.useEffect(() => {
-    if (incomesError && !(incomesError as any)?.response?.data?.includes?.("Cannot GET /api/incomes")) {
-      console.error('Incomes API Error:', incomesError);
-    }
-  }, [incomesError]);
-
   const getAllTransactions = (): Transaction[] => {
-    // If API endpoints are not available, return empty array for now
-    const expenseTransactions: Transaction[] = (expenses || []).map((expense: Expense) => ({
+    const expenseTransactions: Transaction[] = (expenses || []).map(expense => ({
       ...expense,
       type: 'expense' as const,
     }));
     
-    const incomeTransactions: Transaction[] = (incomes || []).map((income: Income) => ({
+    const incomeTransactions: Transaction[] = (incomes || []).map(income => ({
       ...income,
       type: 'income' as const,
     }));

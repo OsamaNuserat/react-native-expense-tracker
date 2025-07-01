@@ -1,10 +1,10 @@
 // Centralized API configuration
 export const API_CONFIG = {
-  // Use local development server
-  BASE_URL: 'http://192.168.15.249:3000',
-  
-  // Production URL (commented out)
+  // Production URL
   // BASE_URL: 'https://expense-tracker-q432.onrender.com',
+  
+  // Local development server (commented out)
+  BASE_URL: 'http://192.168.15.249:3000',
   
   // API endpoints
   ENDPOINTS: {
@@ -16,6 +16,7 @@ export const API_CONFIG = {
     MESSAGES: '/api/messages',
     NOTIFICATIONS: '/api/notifications',
     SUMMARY: '/api/summary',
+    RECURRING_PAYMENTS: '/api/recurring-payments',
     AUTH: {
       LOGIN: '/api/auth/login',
       REGISTER: '/api/auth/register',

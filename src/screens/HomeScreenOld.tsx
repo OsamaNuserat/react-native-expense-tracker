@@ -2,14 +2,13 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
-import { Card, FAB } from 'react-native-paper';
+import { Card, Button, FAB } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 
 import { fetchExpensesSummary, fetchIncomesSummary } from '../api/summaryApi';
 import { getSurvivalBudget } from '../api/budgetApi';
 import { formatCurrency } from '../utils/formatters';
-import { BudgetSummary } from '../types';
 
 export default function HomeScreen() {
   const navigation = useNavigation();
@@ -24,18 +23,11 @@ export default function HomeScreen() {
     queryFn: fetchIncomesSummary,
   });
 
-  const { data: budgetData, isLoading: budgetLoading, refetch: refetchBudget, error: budgetError } = useQuery<BudgetSummary, Error>({
+  const { data: budgetData, isLoading: budgetLoading, refetch: refetchBudget } = useQuery({
     queryKey: ['survivalBudget'],
     queryFn: getSurvivalBudget,
     retry: false,
   });
-
-  // Log budget errors only if they're not the expected "No active budget" error
-  React.useEffect(() => {
-    if (budgetError && !(budgetError as any)?.response?.data?.message?.includes("No active budget")) {
-      console.error('Budget API Error:', budgetError);
-    }
-  }, [budgetError]);
 
   const onRefresh = async () => {
     await Promise.all([refetchExpenses(), refetchIncomes(), refetchBudget()]);
@@ -54,10 +46,10 @@ export default function HomeScreen() {
   )?.total || 0;
 
   const balance = currentIncome - currentExpenses;
-  const budgetRemaining = budgetData ? (budgetData.budget.amount - currentExpenses) : null;
+  const budgetRemaining = budgetData ? (budgetData.amount - currentExpenses) : null;
 
   const QuickActionCard = ({ icon, title, subtitle, onPress, color = '#FF6384' }: any) => (
-    <TouchableOpacity onPress={onPress} style={styles.quickActionContainer}>
+    <TouchableOpacity onPress={onPress} style={styles.quickActionCard}>
       <Card style={[styles.actionCard, { borderLeftColor: color, borderLeftWidth: 4 }]}>
         <Card.Content style={styles.actionContent}>
           <Icon name={icon} size={24} color={color} />
@@ -217,6 +209,97 @@ export default function HomeScreen() {
     </SafeAreaView>
   );
 }
+  });
+
+  const isRefreshing = expensesLoading || incomesLoading;
+
+  const onRefresh = () => {
+    refetchExpenses();
+    refetchIncomes();
+    refetchExpensesSummary();
+    refetchIncomesSummary();
+    refetchBudget();
+  };
+
+  // Calculate totals
+  const totalExpenses = expensesSummary?.reduce((sum, item) => sum + item.total, 0) || 0;
+  const totalIncomes = incomesSummary?.reduce((sum, item) => sum + item.total, 0) || 0;
+
+  // Prepare pie chart data
+  const pieChartData = expensesByCategory?.map((item, index) => ({
+    name: item.category,
+    amount: item.total,
+    color: colors[index % colors.length],
+    legendFontColor: '#FFF',
+    legendFontSize: 14,
+  })) || [];
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScrollView 
+        style={styles.scrollView}
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+        }
+    >
+      {/* Budget Summary Card */}
+      {budgetData && (
+        <Card style={styles.budgetCard}>
+          <Card.Content>
+            <Text style={styles.budgetTitle}>Weekly Budget</Text>
+            <Text style={styles.budgetAmount}>
+              JD {budgetData.currentWeek.remaining.toFixed(2)} remaining
+            </Text>
+            <Text style={styles.budgetSubtext}>
+              Spent: JD {budgetData.currentWeek.spent.toFixed(2)} / JD {budgetData.weeklyBudget.toFixed(2)}
+            </Text>
+          </Card.Content>
+        </Card>
+      )}
+
+      {/* Income vs Expenses Summary */}
+      <View style={styles.summaryContainer}>
+        <SummaryCard 
+          title="Income" 
+          amount={totalIncomes} 
+          color="#4CAF50"
+        />
+        <SummaryCard 
+          title="Expenses" 
+          amount={totalExpenses} 
+          color="#FF5722"
+        />
+      </View>
+
+      {/* Expenses Pie Chart */}
+      {pieChartData.length > 0 && (
+        <Card style={styles.chartCard}>
+          <Card.Content>
+            <Text style={styles.chartTitle}>Expenses by Category</Text>
+            <PieChart
+              data={pieChartData}
+              width={screenWidth - 40}
+              height={220}
+              chartConfig={chartConfig}
+              accessor={'amount'}
+              backgroundColor={'transparent'}
+              paddingLeft={'10'}
+              center={[0, 0]}
+              absolute
+            />
+          </Card.Content>
+        </Card>
+      )}
+
+      {/* Category Breakdown */}
+      <CategoryBreakdown 
+        expenses={expensesByCategory} 
+        incomes={incomesByCategory}
+      />
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -225,88 +308,42 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+    padding: 10,
   },
-  header: {
-    padding: 20,
-    paddingBottom: 10,
-  },
-  welcomeText: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#FFF',
-    marginBottom: 4,
-  },
-  dateText: {
-    fontSize: 16,
-    color: '#888',
-  },
-  metricsContainer: {
-    padding: 20,
-    paddingTop: 10,
-    gap: 12,
-  },
-  metricCard: {
+  budgetCard: {
+    marginBottom: 15,
     backgroundColor: '#2A2A2A',
-    borderRadius: 12,
   },
-  metricContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
+  budgetTitle: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
-  metricText: {
-    flex: 1,
-  },
-  metricLabel: {
-    fontSize: 14,
-    color: '#888',
-    marginBottom: 4,
-  },
-  metricValue: {
+  budgetAmount: {
+    color: '#4CAF50',
     fontSize: 24,
     fontWeight: 'bold',
+    marginTop: 5,
   },
-  section: {
-    padding: 20,
-    paddingTop: 10,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFF',
-    marginBottom: 16,
-  },
-  quickActionContainer: {
-    marginBottom: 12,
-  },
-  actionCard: {
-    backgroundColor: '#2A2A2A',
-    borderRadius: 12,
-  },
-  actionContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-    paddingVertical: 8,
-  },
-  actionText: {
-    flex: 1,
-  },
-  actionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFF',
-    marginBottom: 2,
-  },
-  actionSubtitle: {
+  budgetSubtext: {
+    color: '#AAA',
     fontSize: 14,
-    color: '#888',
+    marginTop: 5,
   },
-  fab: {
-    position: 'absolute',
-    margin: 16,
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#FF6384',
+  summaryContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+  },
+  chartCard: {
+    marginBottom: 15,
+    backgroundColor: '#2A2A2A',
+  },
+  chartTitle: {
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 10,
   },
 });

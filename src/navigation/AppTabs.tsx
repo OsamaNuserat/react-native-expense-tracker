@@ -26,9 +26,9 @@ export default function AppTabs() {
         tabBarIcon: ({ color, size }) => {
           let iconName = 'apps';
 
-          if (route.name === 'Dashboard') iconName = 'home';
-          else if (route.name === 'Stats') iconName = 'stats-chart';
-          else if (route.name === 'Transactions') iconName = 'list';
+          if (route.name === 'Overview') iconName = 'grid-outline';
+          else if (route.name === 'Transactions') iconName = 'wallet-outline';
+          else if (route.name === 'Analytics') iconName = 'analytics-outline';
           else if (route.name === 'More') iconName = 'ellipsis-horizontal';
 
           return <Icon name={iconName} size={size} color={color} />;
@@ -36,19 +36,19 @@ export default function AppTabs() {
       })}
     >
       <Tab.Screen 
-        name="Dashboard" 
+        name="Overview" 
         component={HomeScreen} 
-        options={{ title: 'Dashboard' }}
-      />
-      <Tab.Screen 
-        name="Stats" 
-        component={StatsScreen} 
-        options={{ title: 'Statistics' }}
+        options={{ title: 'Overview' }}
       />
       <Tab.Screen 
         name="Transactions" 
         component={TransactionsScreen} 
         options={{ title: 'Transactions' }}
+      />
+      <Tab.Screen 
+        name="Analytics" 
+        component={StatsScreen} 
+        options={{ title: 'Analytics' }}
       />
       <Tab.Screen 
         name="More" 

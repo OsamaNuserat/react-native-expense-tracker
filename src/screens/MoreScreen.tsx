@@ -79,6 +79,15 @@ export default function MoreScreen() {
           >
             Budget Settings
           </Button>
+
+          <Button 
+            mode="outlined" 
+            onPress={() => navigation.navigate('RecurringPayments')}
+            style={styles.button}
+            icon="repeat"
+          >
+            Recurring Payments
+          </Button>
         </Card.Content>
       </Card>
 
