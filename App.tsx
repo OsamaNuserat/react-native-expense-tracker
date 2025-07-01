@@ -4,6 +4,7 @@ import * as Notifications from 'expo-notifications';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Provider as PaperProvider } from 'react-native-paper';
 import Toast from 'react-native-toast-message';
+import Constants from 'expo-constants';
 
 import AppNavigator from './src/navigation/AppNavigator';
 import { AuthProvider } from './src/auth/authContext';

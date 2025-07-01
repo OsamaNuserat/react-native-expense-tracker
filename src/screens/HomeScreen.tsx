@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
@@ -10,9 +10,11 @@ import { fetchExpensesSummary, fetchIncomesSummary } from '../api/summaryApi';
 import { getSurvivalBudget } from '../api/budgetApi';
 import { formatCurrency } from '../utils/formatters';
 import { BudgetSummary } from '../types';
+import AddTransactionModal from '../components/AddTransactionModal';
 
 export default function HomeScreen() {
   const navigation = useNavigation();
+  const [isAddTransactionModalVisible, setIsAddTransactionModalVisible] = useState(false);
 
   const { data: expensesSummary, isLoading: expensesLoading, refetch: refetchExpenses } = useQuery({
     queryKey: ['expensesSummary'],
@@ -175,7 +177,7 @@ export default function HomeScreen() {
             icon="add-circle-outline"
             title="Add Transaction"
             subtitle="Record a new expense or income"
-            onPress={() => {/* Navigate to add transaction */}}
+            onPress={() => setIsAddTransactionModalVisible(true)}
             color="#FF6384"
           />
           
@@ -211,8 +213,14 @@ export default function HomeScreen() {
       <FAB
         icon="add"
         style={styles.fab}
-        onPress={() => {/* Navigate to add transaction */}}
+        onPress={() => setIsAddTransactionModalVisible(true)}
         color="#FFF"
+      />
+
+      {/* Add Transaction Modal */}
+      <AddTransactionModal
+        visible={isAddTransactionModalVisible}
+        onDismiss={() => setIsAddTransactionModalVisible(false)}
       />
     </SafeAreaView>
   );

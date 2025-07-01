@@ -8,12 +8,14 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { fetchExpenses, fetchIncomes } from '../api/transactionApi';
 import { formatCurrency, formatDate } from '../utils/formatters';
 import { Expense, Income } from '../types';
+import AddTransactionModal from '../components/AddTransactionModal';
 
 type Transaction = (Expense | Income) & { type: 'expense' | 'income' };
 
 export default function TransactionsScreen() {
   const [selectedType, setSelectedType] = useState<'all' | 'expenses' | 'incomes'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isAddTransactionModalVisible, setIsAddTransactionModalVisible] = useState(false);
 
   const { data: expenses, isLoading: expensesLoading, error: expensesError } = useQuery<Expense[]>({
     queryKey: ['expenses'],
@@ -251,8 +253,14 @@ export default function TransactionsScreen() {
       <FAB
         icon="add"
         style={styles.fab}
-        onPress={() => {/* Navigate to add transaction */}}
+        onPress={() => setIsAddTransactionModalVisible(true)}
         color="#FFF"
+      />
+
+      {/* Add Transaction Modal */}
+      <AddTransactionModal
+        visible={isAddTransactionModalVisible}
+        onDismiss={() => setIsAddTransactionModalVisible(false)}
       />
     </SafeAreaView>
   );

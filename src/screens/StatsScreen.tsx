@@ -18,11 +18,33 @@ export default function StatsScreen() {
           value={timeRange}
           onValueChange={(value) => setTimeRange(value as typeof timeRange)}
           buttons={[
-            { value: 'month', label: 'This Month' },
-            { value: 'quarter', label: '3 Months' },
-            { value: 'year', label: 'This Year' },
+            { 
+              value: 'month', 
+              label: 'This Month',
+              style: timeRange === 'month' ? styles.selectedButton : styles.unselectedButton,
+              labelStyle: timeRange === 'month' ? styles.selectedLabel : styles.unselectedLabel,
+            },
+            { 
+              value: 'quarter', 
+              label: '3 Months',
+              style: timeRange === 'quarter' ? styles.selectedButton : styles.unselectedButton,
+              labelStyle: timeRange === 'quarter' ? styles.selectedLabel : styles.unselectedLabel,
+            },
+            { 
+              value: 'year', 
+              label: 'This Year',
+              style: timeRange === 'year' ? styles.selectedButton : styles.unselectedButton,
+              labelStyle: timeRange === 'year' ? styles.selectedLabel : styles.unselectedLabel,
+            },
           ]}
           style={styles.segmentedButtons}
+          theme={{
+            colors: {
+              secondaryContainer: '#FF6384',
+              onSecondaryContainer: '#FFFFFF',
+              outline: '#444',
+            }
+          }}
         />
       </Card.Content>
     </Card>
@@ -82,6 +104,7 @@ const styles = StyleSheet.create({
   selectorCard: {
     backgroundColor: '#2A2A2A',
     marginBottom: 8,
+    borderRadius: 12,
   },
   selectorTitle: {
     fontSize: 16,
@@ -90,6 +113,28 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   segmentedButtons: {
-    backgroundColor: '#1E1E1E',
+    backgroundColor: 'transparent',
+    borderRadius: 8,
+  },
+  selectedButton: {
+    backgroundColor: '#FF6384',
+    borderRadius: 8,
+    borderWidth: 0,
+  },
+  unselectedButton: {
+    backgroundColor: '#333',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#444',
+  },
+  selectedLabel: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  unselectedLabel: {
+    color: '#AAA',
+    fontWeight: '400',
+    fontSize: 14,
   },
 });

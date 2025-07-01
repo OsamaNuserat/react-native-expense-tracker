@@ -172,7 +172,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   messageDate: {
-    color: '#AAA',
+    color: '#CCC',
+    fontSize: 14,
   },
   detailRow: {
     flexDirection: 'row',
@@ -182,7 +183,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   detailLabel: {
-    color: '#AAA',
+    color: '#CCC',
     fontSize: 16,
     fontWeight: '500',
     minWidth: 80,
@@ -235,7 +236,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   noDataText: {
-    color: '#AAA',
+    color: '#CCC',
     lineHeight: 20,
   },
 });

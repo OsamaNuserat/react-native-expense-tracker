@@ -103,32 +103,36 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginBottom: 8,
+    marginBottom: 12,
+    gap: 8,
   },
   chip: {
-    marginRight: 8,
-    marginBottom: 4,
-    backgroundColor: '#1E1E1E',
+    backgroundColor: '#333',
   },
   incomeChip: {
     borderColor: '#4CAF50',
+    backgroundColor: 'rgba(76, 175, 80, 0.1)',
   },
   expenseChip: {
     borderColor: '#FF5722',
+    backgroundColor: 'rgba(255, 87, 34, 0.1)',
   },
   categoryChip: {
     borderColor: '#FF6384',
+    backgroundColor: 'rgba(255, 99, 132, 0.1)',
   },
   sourceChip: {
     borderColor: '#36A2EB',
+    backgroundColor: 'rgba(54, 162, 235, 0.1)',
   },
   chipText: {
     color: '#FFF',
     fontSize: 12,
+    fontWeight: '500',
   },
   date: {
     fontSize: 12,
-    color: '#AAA',
+    color: '#CCC',
     textAlign: 'right',
   },
 });
