@@ -11,6 +11,7 @@ import MessageDetails from '../screens/MessageDetails';
 import CategoriesScreen from '../screens/CategoriesScreen';
 import BudgetSettingsScreen from '../screens/BudgetSettingsScreen';
 import RecurringPaymentsScreen from '../screens/RecurringPaymentsScreen';
+import SpendingAdvisorScreen from '../screens/SpendingAdvisorScreen';
 import AppTabs from './AppTabs';
 
 import { RootStackParamList } from '../types';
@@ -73,6 +74,11 @@ export default function AppNavigator() {
                         name="RecurringPayments"
                         component={RecurringPaymentsScreen}
                         options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                        name="SpendingAdvisor"
+                        component={SpendingAdvisorScreen}
+                        options={{ title: 'Spending Advisor' }}
                     />
                 </Stack.Group>
             ) : (

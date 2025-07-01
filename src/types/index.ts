@@ -12,6 +12,7 @@ export type RootStackParamList = {
   BudgetSettings: undefined;
   RecurringPayments: undefined;
   Settings: undefined;
+  SpendingAdvisor: undefined;
 };
 
 export interface User {

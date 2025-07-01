@@ -182,6 +182,14 @@ export default function HomeScreen() {
           />
           
           <QuickActionCard
+            icon="bulb-outline"
+            title="Spending Advisor"
+            subtitle="Get AI-powered spending insights"
+            onPress={() => navigation.navigate('SpendingAdvisor' as never)}
+            color="#9C27B0"
+          />
+          
+          <QuickActionCard
             icon="analytics-outline"
             title="View Analytics"
             subtitle="See detailed charts and insights"

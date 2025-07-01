@@ -55,6 +55,15 @@ export default function MoreScreen() {
 
           <Button 
             mode="outlined" 
+            onPress={() => navigation.navigate('SpendingAdvisor')}
+            style={styles.button}
+            icon="lightbulb"
+          >
+            Spending Advisor
+          </Button>
+
+          <Button 
+            mode="outlined" 
             onPress={() => navigation.navigate('Messages')}
             style={styles.button}
             icon="message-text"
