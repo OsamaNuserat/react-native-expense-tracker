@@ -32,7 +32,6 @@ export default function HomeScreen() {
     retry: false,
   });
 
-  // Log budget errors only if they're not the expected "No active budget" error
   React.useEffect(() => {
     if (budgetError && !(budgetError as any)?.response?.data?.message?.includes("No active budget")) {
       console.error('Budget API Error:', budgetError);
@@ -43,9 +42,8 @@ export default function HomeScreen() {
     await Promise.all([refetchExpenses(), refetchIncomes(), refetchBudget()]);
   };
 
-  // Calculate current month totals
   const currentDate = new Date();
-  const currentMonth = currentDate.toISOString().slice(0, 7); // YYYY-MM format
+  const currentMonth = currentDate.toISOString().slice(0, 7);
   
   const currentExpenses = expensesSummary?.find(item => 
     item.month.startsWith(currentMonth)
@@ -57,6 +55,22 @@ export default function HomeScreen() {
 
   const balance = currentIncome - currentExpenses;
   const budgetRemaining = budgetData ? (budgetData.budget.amount - currentExpenses) : null;
+
+  const currentYear = currentDate.getFullYear();
+  const currentMonthIndex = currentDate.getMonth();
+  
+  let lastMonthIndex = currentMonthIndex - 1;
+  let lastYear = currentYear;
+  
+  if (lastMonthIndex < 0) {
+    lastMonthIndex = 11;
+    lastYear = currentYear - 1;
+  }
+  
+  const lastMonth = `${lastYear}-${String(lastMonthIndex + 1).padStart(2, '0')}`;
+
+  const lastMonthIncome = incomesSummary?.find(item => item.month.startsWith(lastMonth))?.total || 0;
+  const lastMonthExpenses = expensesSummary?.find(item => item.month.startsWith(lastMonth))?.total || 0;
 
   const QuickActionCard = ({ icon, title, subtitle, onPress, color = '#FF6384' }: any) => (
     <TouchableOpacity onPress={onPress} style={styles.quickActionContainer}>
@@ -86,7 +100,6 @@ export default function HomeScreen() {
         }
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.welcomeText}>Welcome back!</Text>
           <Text style={styles.dateText}>
@@ -99,7 +112,6 @@ export default function HomeScreen() {
           </Text>
         </View>
 
-        {/* Key Metrics Cards */}
         <View style={styles.metricsContainer}>
           <Card style={[styles.metricCard, { backgroundColor: '#1A4D3A' }]}>
             <Card.Content style={styles.metricContent}>
@@ -169,7 +181,42 @@ export default function HomeScreen() {
           )}
         </View>
 
-        {/* Quick Actions */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Last Month Summary</Text>
+          <Card style={styles.summaryCard}>
+            <Card.Content>
+              <View style={styles.summaryRow}>
+                <View style={styles.summaryItem}>
+                  <Icon name="calendar-outline" size={20} color="#888" />
+                  <Text style={styles.summaryLabel}>
+                    {new Date(lastYear, lastMonthIndex, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.summaryRow}>
+                <View style={styles.summaryItem}>
+                  <Text style={styles.summaryLabel}>Income</Text>
+                  <Text style={[styles.summaryValue, { color: '#4CAF50' }]}>
+                    {formatCurrency(lastMonthIncome)}
+                  </Text>
+                </View>
+                <View style={styles.summaryItem}>
+                  <Text style={styles.summaryLabel}>Expenses</Text>
+                  <Text style={[styles.summaryValue, { color: '#FF6384' }]}>
+                    {formatCurrency(lastMonthExpenses)}
+                  </Text>
+                </View>
+                <View style={styles.summaryItem}>
+                  <Text style={styles.summaryLabel}>Saved</Text>
+                  <Text style={[styles.summaryValue, { color: lastMonthIncome - lastMonthExpenses >= 0 ? '#4CAF50' : '#FF6384' }]}>
+                    {formatCurrency(lastMonthIncome - lastMonthExpenses)}
+                  </Text>
+                </View>
+              </View>
+            </Card.Content>
+          </Card>
+        </View>
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Quick Actions</Text>
           
@@ -217,7 +264,6 @@ export default function HomeScreen() {
         <View style={{ height: 100 }} />
       </ScrollView>
 
-      {/* Quick Add FAB */}
       <FAB
         icon="add"
         style={styles.fab}
@@ -225,7 +271,6 @@ export default function HomeScreen() {
         color="#FFF"
       />
 
-      {/* Add Transaction Modal */}
       <AddTransactionModal
         visible={isAddTransactionModalVisible}
         onDismiss={() => setIsAddTransactionModalVisible(false)}
@@ -324,5 +369,30 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: '#FF6384',
+  },
+  summaryCard: {
+    backgroundColor: '#2A2A2A',
+    borderRadius: 12,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  summaryItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  summaryLabel: {
+    fontSize: 12,
+    color: '#888',
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  summaryValue: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
