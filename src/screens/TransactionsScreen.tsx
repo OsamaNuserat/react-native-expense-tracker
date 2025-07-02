@@ -5,7 +5,8 @@ import { Text, Card, SegmentedButtons, Chip, FAB, Searchbar } from 'react-native
 import { useQuery } from '@tanstack/react-query';
 import Icon from 'react-native-vector-icons/Ionicons';
 
-import { fetchExpenses, fetchIncomes } from '../api/transactionApi';
+import { fetchExpenses, fetchIncomes, fetchAllTransactions } from '../api/transactionApi';
+import { fetchCategories } from '../api/categoryApi';
 import { formatCurrency, formatDate } from '../utils/formatters';
 import { Expense, Income } from '../types';
 import AddTransactionModal from '../components/AddTransactionModal';
@@ -17,42 +18,58 @@ export default function TransactionsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddTransactionModalVisible, setIsAddTransactionModalVisible] = useState(false);
 
-  const { data: expenses, isLoading: expensesLoading, error: expensesError } = useQuery<Expense[]>({
+  const { data: expenses, isLoading: expensesLoading, error: expensesError, refetch: refetchExpenses } = useQuery<Expense[]>({
     queryKey: ['expenses'],
     queryFn: fetchExpenses,
     retry: false,
   });
 
-  const { data: incomes, isLoading: incomesLoading, error: incomesError } = useQuery<Income[]>({
+  const { data: incomes, isLoading: incomesLoading, error: incomesError, refetch: refetchIncomes } = useQuery<Income[]>({
     queryKey: ['incomes'],
     queryFn: fetchIncomes,
     retry: false,
   });
 
+  const { data: categories, isLoading: categoriesLoading, error: categoriesError, refetch: refetchCategories } = useQuery({
+    queryKey: ['categories'],
+    queryFn: () => fetchCategories(),
+    retry: false,
+  });
+
   // Handle API errors gracefully
   React.useEffect(() => {
-    if (expensesError && !(expensesError as any)?.response?.data?.includes?.("Cannot GET /api/expenses")) {
+    if (expensesError && !(expensesError as any)?.response?.data?.includes?.("Cannot GET /api/summary/expenses")) {
       console.error('Expenses API Error:', expensesError);
     }
   }, [expensesError]);
 
   React.useEffect(() => {
-    if (incomesError && !(incomesError as any)?.response?.data?.includes?.("Cannot GET /api/incomes")) {
+    if (incomesError && !(incomesError as any)?.response?.data?.includes?.("Cannot GET /api/summary/incomes")) {
       console.error('Incomes API Error:', incomesError);
     }
   }, [incomesError]);
 
+  const getCategoryName = (categoryId: number | undefined): string => {
+    if (!categoryId || !categories) return 'Uncategorized';
+    const category = categories.find((cat: any) => cat.id === categoryId);
+    return category?.name || 'Unknown Category';
+  };
+
   const getAllTransactions = (): Transaction[] => {
-    // If API endpoints are not available, return empty array for now
-    const expenseTransactions: Transaction[] = (expenses || []).map((expense: Expense) => ({
-      ...expense,
-      type: 'expense' as const,
-    }));
+    // Filter out any null/undefined items and add type property
+    const expenseTransactions: Transaction[] = (expenses || [])
+      .filter(expense => expense && expense.id)
+      .map((expense: Expense) => ({
+        ...expense,
+        type: 'expense' as const,
+      }));
     
-    const incomeTransactions: Transaction[] = (incomes || []).map((income: Income) => ({
-      ...income,
-      type: 'income' as const,
-    }));
+    const incomeTransactions: Transaction[] = (incomes || [])
+      .filter(income => income && income.id)
+      .map((income: Income) => ({
+        ...income,
+        type: 'income' as const,
+      }));
 
     const allTransactions = [...expenseTransactions, ...incomeTransactions];
     return allTransactions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -75,7 +92,8 @@ export default function TransactionsScreen() {
     if (searchQuery.trim()) {
       transactions = transactions.filter(t => 
         (t.merchant || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        t.amount.toString().includes(searchQuery)
+        t.amount.toString().includes(searchQuery) ||
+        getCategoryName(t.categoryId).toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
@@ -104,18 +122,16 @@ export default function TransactionsScreen() {
                   size={20} 
                   color={item.type === 'expense' ? '#FF6384' : '#4CAF50'} 
                 />
-                <Text variant="titleMedium" style={styles.merchant}>
+                <Text style={styles.merchant}>
                   {item.merchant || 'Unknown Merchant'}
                 </Text>
               </View>
-              <Text variant="bodySmall" style={styles.date}>
+              <Text style={styles.date}>
                 {formatDate(item.createdAt)}
               </Text>
-              {item.category?.name && (
-                <Text variant="bodySmall" style={styles.description}>
-                  {item.category.name}
-                </Text>
-              )}
+              <Text style={styles.description}>
+                {getCategoryName(item.categoryId)}
+              </Text>
             </View>
             <View style={styles.amountContainer}>
               <Text style={[
@@ -148,7 +164,7 @@ export default function TransactionsScreen() {
     <View style={styles.headerContainer}>
       {/* Search Bar */}
       <Searchbar
-        placeholder="Search transactions..."
+        placeholder="Search by merchant, amount, or category..."
         onChangeText={setSearchQuery}
         value={searchQuery}
         style={styles.searchBar}
@@ -179,6 +195,7 @@ export default function TransactionsScreen() {
             },
           ]}
           style={styles.segmentedButtons}
+          theme={{ colors: { onSurface: '#FFF', outline: '#666' } }}
         />
       </View>
 
@@ -232,10 +249,17 @@ export default function TransactionsScreen() {
       <FlatList
         data={filteredTransactions}
         renderItem={renderTransaction}
-        keyExtractor={(item) => `${item.type}-${item.id}`}
+        keyExtractor={(item, index) => `${item.type}-${item.id || index}`}
         ListHeaderComponent={ListHeader}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
+        refreshing={expensesLoading || incomesLoading || categoriesLoading}
+        onRefresh={() => {
+          // Trigger refetch of all data
+          refetchExpenses();
+          refetchIncomes();
+          refetchCategories();
+        }}
         ListEmptyComponent={
           <View style={styles.emptyState}>
             <Icon name="receipt-outline" size={64} color="#666" />

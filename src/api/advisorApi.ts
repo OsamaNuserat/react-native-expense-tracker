@@ -73,7 +73,7 @@ export const fetchSpendingSuggestions = async (
     try {
       // Try to get actual expenses and categories to generate smart suggestions
       const [expensesResponse, categoriesResponse] = await Promise.all([
-        instance.get('/api/expenses').catch(() => ({ data: [] })),
+        instance.get('/api/summary/expenses').catch(() => ({ data: [] })),
         instance.get('/api/categories').catch(() => ({ data: [] }))
       ]);
       
@@ -243,7 +243,7 @@ export const fetchAdvisorOverview = async (period: string = 'month'): Promise<Ad
     try {
       // Try to get actual expenses and budget data
       const [expensesResponse, budgetResponse] = await Promise.all([
-        instance.get('/api/expenses').catch(() => ({ data: [] })),
+        instance.get('/api/summary/expenses').catch(() => ({ data: [] })),
         instance.get('/api/budget').catch(() => ({ data: null }))
       ]);
       

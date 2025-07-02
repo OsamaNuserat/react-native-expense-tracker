@@ -149,8 +149,8 @@ axiosInstance.interceptors.response.use(
     const errorMessage = error.response?.data?.message || error.message;
     const errorData = typeof error.response?.data === 'string' ? error.response.data : '';
     const isNoActiveBudgetError = errorMessage === "No active budget";
-    const isEndpointNotFoundError = errorData.includes("Cannot GET /api/expenses") || 
-                                   errorData.includes("Cannot GET /api/incomes");
+    const isEndpointNotFoundError = errorData.includes("Cannot GET /api/summary/expenses") || 
+                                   errorData.includes("Cannot GET /api/summary/incomes");
     
     if (isNoActiveBudgetError) {
       console.log('ℹ️ No active budget found - this is normal for new users');

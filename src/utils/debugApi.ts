@@ -5,12 +5,12 @@ export const debugApiEndpoints = async () => {
   console.log('🔍 === API ENDPOINT DEBUG TEST ===');
   
   const endpointsToTest = [
-    '/api/expenses',
-    '/api/incomes', 
-    '/api/categories',
-    '/api/budget',
     '/api/summary/expenses',
     '/api/summary/incomes',
+    '/api/summary/expenses-by-category',
+    '/api/summary/incomes-by-category', 
+    '/api/categories',
+    '/api/budget',
     '/api/advisor/overview',
     '/api/advisor/suggestions'
   ];

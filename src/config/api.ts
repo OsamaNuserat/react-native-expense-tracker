@@ -9,8 +9,11 @@ export const API_CONFIG = {
   // API endpoints
   ENDPOINTS: {
     PARSE_SMS: '/api/parse-sms',
-    EXPENSES: '/api/expenses',
-    INCOMES: '/api/incomes',
+    // Summary-based endpoints (aligned with backend structure)
+    EXPENSES: '/api/summary/expenses',
+    INCOMES: '/api/summary/incomes',
+    EXPENSES_BY_CATEGORY: '/api/summary/expenses-by-category',
+    INCOMES_BY_CATEGORY: '/api/summary/incomes-by-category',
     CATEGORIES: '/api/categories',
     BUDGET: '/api/budget',
     MESSAGES: '/api/messages',
