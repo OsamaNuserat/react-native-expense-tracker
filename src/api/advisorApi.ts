@@ -61,90 +61,273 @@ export const fetchSpendingSuggestions = async (
   limit: number = 5
 ): Promise<SpendingSuggestion[]> => {
   try {
+    console.log('🧠 Fetching spending suggestions...');
     const { data } = await instance.get(`/api/advisor/suggestions`, {
       params: { period, limit }
     });
+    console.log('🧠 Suggestions response:', data);
     return data;
   } catch (error: any) {
-    // Handle 404 or other errors gracefully
-    console.info('Spending Advisor API not available, using mock data');
-    // Return mock data for development
-    return [
-      {
-        id: '1',
-        title: 'Reduce Dining Out',
-        description: 'You\'ve spent 40% more on restaurants this month. Consider cooking at home to save money.',
-        icon: '🍽️',
-        priority: 'high',
-        actionText: 'Set Dining Budget',
-        difficultyLevel: 'easy',
-        impact: {
-          savings: 250,
-          currency: 'JD',
+    console.info('🧠 Spending Advisor API not available, generating suggestions from data...');
+    
+    try {
+      // Try to get actual expenses and categories to generate smart suggestions
+      const [expensesResponse, categoriesResponse] = await Promise.all([
+        instance.get('/api/expenses').catch(() => ({ data: [] })),
+        instance.get('/api/categories').catch(() => ({ data: [] }))
+      ]);
+      
+      console.log('🧠 Raw expenses for suggestions:', expensesResponse.data);
+      console.log('🧠 Categories for suggestions:', categoriesResponse.data);
+      
+      // Filter expenses by time period
+      const now = new Date();
+      let startDate: Date;
+      
+      switch (period) {
+        case 'quarter':
+          startDate = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+          break;
+        case 'year':
+          startDate = new Date(now.getFullYear(), 0, 1);
+          break;
+        case 'month':
+        default:
+          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+          break;
+      }
+      
+      const filteredExpenses = expensesResponse.data
+        .filter((expense: any) => {
+          const expenseDate = new Date(expense.createdAt);
+          return expenseDate >= startDate && expenseDate <= now;
+        });
+      
+      console.log('🧠 Filtered expenses for suggestions:', filteredExpenses.length, 'Period:', period);
+      
+      const expenses = filteredExpenses;
+      const categories = categoriesResponse.data;
+      
+      // Calculate spending by category
+      const categorySpending = categories.reduce((acc: any, category: any) => {
+        const total = expenses
+          .filter((expense: any) => expense.categoryId === category.id)
+          .reduce((sum: number, expense: any) => sum + (expense.amount || 0), 0);
+        
+        if (total > 0) {
+          acc[category.name.toLowerCase()] = {
+            total,
+            count: expenses.filter((expense: any) => expense.categoryId === category.id).length,
+            category: category.name
+          };
+        }
+        return acc;
+      }, {});
+      
+      console.log('🧠 Category spending analysis:', categorySpending);
+      
+      const suggestions: SpendingSuggestion[] = [];
+      
+      // Generate suggestions based on spending patterns
+      if (categorySpending.dining && categorySpending.dining.total > 200) {
+        suggestions.push({
+          id: 'dining-1',
+          title: 'Reduce Dining Out',
+          description: `You've spent ${categorySpending.dining.total.toFixed(2)} JD on dining this month. Consider cooking at home more often.`,
+          icon: '🍽️',
+          priority: categorySpending.dining.total > 400 ? 'high' : 'medium',
+          actionText: 'Set Dining Budget',
+          difficultyLevel: 'easy',
+          impact: {
+            savings: Math.round(categorySpending.dining.total * 0.3),
+            currency: 'JD',
+          },
+        });
+      }
+      
+      if (categorySpending.subscriptions && categorySpending.subscriptions.total > 50) {
+        suggestions.push({
+          id: 'subscriptions-1',
+          title: 'Review Subscriptions',
+          description: `You have ${categorySpending.subscriptions.total.toFixed(2)} JD in subscription costs. Consider canceling unused services.`,
+          icon: '📺',
+          priority: 'medium',
+          actionText: 'Review Subscriptions',
+          difficultyLevel: 'easy',
+          impact: {
+            savings: Math.round(categorySpending.subscriptions.total * 0.4),
+            currency: 'JD',
+          },
+        });
+      }
+      
+      if (categorySpending.transportation && categorySpending.transportation.total > 150) {
+        suggestions.push({
+          id: 'transport-1',
+          title: 'Optimize Transportation',
+          description: `Transportation costs are ${categorySpending.transportation.total.toFixed(2)} JD. Consider carpooling or public transport.`,
+          icon: '🚗',
+          priority: 'medium',
+          actionText: 'Plan Routes',
+          difficultyLevel: 'medium',
+          impact: {
+            savings: Math.round(categorySpending.transportation.total * 0.2),
+            currency: 'JD',
+          },
+        });
+      }
+      
+      if (categorySpending.shopping && categorySpending.shopping.total > 100) {
+        suggestions.push({
+          id: 'shopping-1',
+          title: 'Smart Shopping',
+          description: `Shopping expenses are ${categorySpending.shopping.total.toFixed(2)} JD. Try making a list before shopping to avoid impulse buys.`,
+          icon: '🛍️',
+          priority: categorySpending.shopping.total > 300 ? 'high' : 'low',
+          actionText: 'Create Shopping List',
+          difficultyLevel: 'easy',
+          impact: {
+            savings: Math.round(categorySpending.shopping.total * 0.25),
+            currency: 'JD',
+          },
+        });
+      }
+      
+      // If no specific suggestions, provide general advice
+      if (suggestions.length === 0) {
+        suggestions.push({
+          id: 'general-1',
+          title: 'Great job!',
+          description: 'You\'re managing your spending well. Keep tracking your expenses to maintain this good habit.',
+          icon: '✅',
+          priority: 'low',
+          actionText: 'Keep It Up',
+          difficultyLevel: 'easy',
+        });
+      }
+      
+      console.log('🧠 Generated suggestions:', suggestions);
+      return suggestions.slice(0, limit);
+      
+    } catch (calculationError: any) {
+      console.warn('🧠 Failed to generate suggestions from data:', calculationError.message);
+      
+      // Return basic suggestions as fallback
+      return [
+        {
+          id: 'fallback-1',
+          title: 'Start Tracking',
+          description: 'Begin by adding your expenses to get personalized spending advice.',
+          icon: '📊',
+          priority: 'low',
+          actionText: 'Add Expense',
+          difficultyLevel: 'easy',
         },
-      },
-      {
-        id: '2',
-        title: 'Review Subscriptions',
-        description: 'You have multiple streaming services. Consider canceling unused subscriptions.',
-        icon: '📺',
-        priority: 'medium',
-        actionText: 'Review Subscriptions',
-        difficultyLevel: 'easy',
-        impact: {
-          savings: 50,
-          currency: 'JD',
-        },
-      },
-      {
-        id: '3',
-        title: 'Optimize Transportation',
-        description: 'Gas expenses are above average. Consider carpooling or public transport.',
-        icon: '🚗',
-        priority: 'medium',
-        actionText: 'Plan Routes',
-        difficultyLevel: 'medium',
-        impact: {
-          savings: 80,
-          currency: 'JD',
-        },
-      },
-    ];
+      ];
+    }
   }
 };
 
 // Get spending overview and dashboard data
 export const fetchAdvisorOverview = async (period: string = 'month'): Promise<AdvisorOverview> => {
   try {
+    console.log('🧠 Fetching advisor overview...');
     const { data } = await instance.get(`/api/advisor/overview`, {
       params: { period }
     });
+    console.log('🧠 Advisor overview response:', data);
     return data;
   } catch (error: any) {
-    // Handle 404 or other errors gracefully
-    console.info('Advisor Overview API not available, using mock data');
-    // Return mock data for development
-    return {
-      currentSpending: {
-        amount: 1250.50,
-        currency: 'JD',
-      },
-      budget: {
-        amount: 2000,
-        currency: 'JD',
-        remaining: 749.50,
-        percentage: 62.5,
-      },
-      status: 'moderate',
-      alerts: [
-        'You\'re 15% over your dining budget',
-        'Subscription costs increased this month',
-      ],
-      insights: [
-        'You saved 12% compared to last month',
-        'Weekend spending is higher than weekdays',
-      ],
-    };
+    console.info('🧠 Advisor Overview API not available, trying to calculate from raw data...');
+    
+    try {
+      // Try to get actual expenses and budget data
+      const [expensesResponse, budgetResponse] = await Promise.all([
+        instance.get('/api/expenses').catch(() => ({ data: [] })),
+        instance.get('/api/budget').catch(() => ({ data: null }))
+      ]);
+      
+      console.log('🧠 Raw expenses data:', expensesResponse.data);
+      console.log('🧠 Raw budget data:', budgetResponse.data);
+      
+      // Calculate spending for the selected period
+      const now = new Date();
+      let startDate: Date;
+      
+      switch (period) {
+        case 'quarter':
+          startDate = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+          break;
+        case 'year':
+          startDate = new Date(now.getFullYear(), 0, 1);
+          break;
+        case 'month':
+        default:
+          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+          break;
+      }
+      
+      console.log('🧠 Filtering expenses from', startDate.toISOString(), 'to', now.toISOString());
+      
+      const filteredExpenses = expensesResponse.data
+        .filter((expense: any) => {
+          const expenseDate = new Date(expense.createdAt);
+          return expenseDate >= startDate && expenseDate <= now;
+        });
+      
+      const totalSpending = filteredExpenses
+        .reduce((total: number, expense: any) => total + (expense.amount || 0), 0);
+      
+      console.log('🧠 Filtered expenses:', filteredExpenses.length, 'Total spending:', totalSpending);
+      
+      const budgetAmount = budgetResponse.data?.amount || 1200; // fallback from your test data
+      const remaining = budgetAmount - totalSpending;
+      const percentage = budgetAmount > 0 ? (totalSpending / budgetAmount) * 100 : 0;
+      
+      let status: 'good' | 'moderate' | 'warning' | 'critical' = 'good';
+      if (percentage > 90) status = 'critical';
+      else if (percentage > 75) status = 'warning';
+      else if (percentage > 50) status = 'moderate';
+      
+      const overview: AdvisorOverview = {
+        currentSpending: {
+          amount: totalSpending,
+          currency: 'JD',
+        },
+        budget: {
+          amount: budgetAmount,
+          currency: 'JD',
+          remaining: remaining,
+          percentage: percentage,
+        },
+        status: status,
+        alerts: percentage > 75 ? ['You\'re approaching your budget limit'] : [],
+        insights: totalSpending > 0 ? ['Track your spending to stay on budget'] : ['Start tracking your expenses'],
+      };
+      
+      console.log('🧠 Calculated advisor overview:', overview);
+      return overview;
+      
+    } catch (calculationError: any) {
+      console.warn('🧠 Failed to calculate overview from raw data:', calculationError.message);
+      
+      // Return basic mock data as fallback
+      return {
+        currentSpending: {
+          amount: 0,
+          currency: 'JD',
+        },
+        budget: {
+          amount: 1200,
+          currency: 'JD',
+          remaining: 1200,
+          percentage: 0,
+        },
+        status: 'good',
+        alerts: [],
+        insights: ['Connect your expenses to get personalized insights'],
+      };
+    }
   }
 };
 

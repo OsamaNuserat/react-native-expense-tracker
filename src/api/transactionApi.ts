@@ -3,13 +3,29 @@ import { Expense, Income } from '../types';
 
 // This would need to be implemented in the backend
 export const fetchExpenses = async (): Promise<Expense[]> => {
-  const { data } = await instance.get('/api/expenses');
-  return data;
+  try {
+    console.log('💰 Fetching expenses...');
+    const { data } = await instance.get('/api/expenses');
+    console.log('💰 Expenses response:', data);
+    return Array.isArray(data) ? data : [];
+  } catch (error: any) {
+    console.info('💰 Expenses API not available:', error.response?.status);
+    console.log('💰 Returning empty expenses array');
+    return [];
+  }
 };
 
 export const fetchIncomes = async (): Promise<Income[]> => {
-  const { data } = await instance.get('/api/incomes');
-  return data;
+  try {
+    console.log('💰 Fetching incomes...');
+    const { data } = await instance.get('/api/incomes');
+    console.log('💰 Incomes response:', data);
+    return Array.isArray(data) ? data : [];
+  } catch (error: any) {
+    console.info('💰 Incomes API not available:', error.response?.status);
+    console.log('💰 Returning empty incomes array');
+    return [];
+  }
 };
 
 export const createExpense = async (expense: Omit<Expense, 'id' | 'userId' | 'createdAt'>): Promise<Expense> => {

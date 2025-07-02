@@ -83,7 +83,7 @@ export function ExpensesTab() {
             />
             <FlatList
                 data={filtered}
-                keyExtractor={(item) => item.month}
+                keyExtractor={(item, index) => `expense-${item.month}-${index}`}
                 renderItem={({ item }) => (
                     <View style={styles.listItem}>
                         <Text style={styles.itemText}>
@@ -135,7 +135,7 @@ export function IncomesTab() {
             />
             <FlatList
                 data={filtered}
-                keyExtractor={(item) => item.month}
+                keyExtractor={(item, index) => `income-${item.month}-${index}`}
                 renderItem={({ item }) => (
                     <View style={styles.listItem}>
                         <Text style={styles.itemText}>
@@ -187,7 +187,7 @@ export function ByCategoryTab() {
             />
             <FlatList
                 data={filtered}
-                keyExtractor={(item) => item.category}
+                keyExtractor={(item, index) => `category-${item.category}-${index}`}
                 renderItem={({ item }) => (
                     <View style={styles.listItem}>
                         <Text style={styles.itemText}>{item.category}</Text>

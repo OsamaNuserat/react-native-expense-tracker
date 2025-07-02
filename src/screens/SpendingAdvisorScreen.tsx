@@ -13,6 +13,7 @@ import {
   SpendingSuggestion,
   AdvisorOverview,
 } from '../api/advisorApi';
+import { debugApiEndpoints, testUserEndpoints } from '../utils/debugApi';
 
 export default function SpendingAdvisorScreen() {
   const [selectedPeriod, setSelectedPeriod] = useState<'month' | 'quarter' | 'year'>('month');
@@ -239,12 +240,54 @@ export default function SpendingAdvisorScreen() {
           </Text>
         </View>
 
+        {/* Time Period Filter */}
+        <View style={styles.filterContainer}>
+          <Text style={styles.filterLabel}>Time Period:</Text>
+          <View style={styles.filterChips}>
+            {[
+              { key: 'month', label: 'This Month' },
+              { key: 'quarter', label: '3 Months' },
+              { key: 'year', label: 'This Year' }
+            ].map((period) => (
+              <Chip
+                key={period.key}
+                mode={selectedPeriod === period.key ? 'flat' : 'outlined'}
+                selected={selectedPeriod === period.key}
+                onPress={() => setSelectedPeriod(period.key as 'month' | 'quarter' | 'year')}
+                style={[
+                  styles.filterChip,
+                  selectedPeriod === period.key && styles.filterChipSelected
+                ]}
+                textStyle={[
+                  styles.filterChipText,
+                  selectedPeriod === period.key && styles.filterChipTextSelected
+                ]}
+              >
+                {period.label}
+              </Chip>
+            ))}
+          </View>
+        </View>
+
         {/* Spending Overview */}
         <SpendingOverviewCard />
 
         {/* Suggestions Section */}
         <View style={styles.suggestionsSection}>
-          <Text style={styles.sectionTitle}>Personalized Suggestions</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Personalized Suggestions</Text>
+            <Button 
+              mode="outlined" 
+              onPress={() => {
+                debugApiEndpoints();
+                testUserEndpoints();
+              }}
+              style={styles.debugButton}
+              labelStyle={styles.debugButtonLabel}
+            >
+              Debug API
+            </Button>
+          </View>
           
           {Array.isArray(suggestions) && suggestions.length > 0 ? (
             suggestions.map((suggestion) => (
@@ -459,5 +502,48 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#888',
     textAlign: 'center',
+  },
+  filterContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    marginBottom: 10,
+  },
+  filterLabel: {
+    fontSize: 14,
+    color: '#888',
+    marginBottom: 8,
+  },
+  filterChips: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  filterChip: {
+    backgroundColor: 'transparent',
+    borderColor: '#555',
+  },
+  filterChipSelected: {
+    backgroundColor: '#FF6384',
+    borderColor: '#FF6384',
+  },
+  filterChipText: {
+    color: '#888',
+    fontSize: 12,
+  },
+  filterChipTextSelected: {
+    color: '#FFF',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  debugButton: {
+    borderColor: '#555',
+    borderRadius: 6,
+  },
+  debugButtonLabel: {
+    fontSize: 10,
+    color: '#888',
   },
 });
