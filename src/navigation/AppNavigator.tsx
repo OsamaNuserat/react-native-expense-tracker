@@ -12,6 +12,7 @@ import CategoriesScreen from '../screens/CategoriesScreen';
 import BudgetSettingsScreen from '../screens/BudgetSettingsScreen';
 import RecurringPaymentsScreen from '../screens/RecurringPaymentsScreen';
 import SpendingAdvisorScreen from '../screens/SpendingAdvisorScreen';
+import FinancialGoalsDashboard from '../screens/FinancialGoalsDashboard';
 import AppTabs from './AppTabs';
 
 import { RootStackParamList } from '../types';
@@ -79,6 +80,11 @@ export default function AppNavigator() {
                         name="SpendingAdvisor"
                         component={SpendingAdvisorScreen}
                         options={{ title: 'Spending Advisor' }}
+                    />
+                    <Stack.Screen
+                        name="FinancialGoals"
+                        component={FinancialGoalsDashboard}
+                        options={{ title: 'Financial Goals' }}
                     />
                 </Stack.Group>
             ) : (

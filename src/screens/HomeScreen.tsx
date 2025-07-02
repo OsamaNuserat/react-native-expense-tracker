@@ -8,8 +8,9 @@ import { useNavigation } from '@react-navigation/native';
 
 import { fetchExpensesSummary, fetchIncomesSummary } from '../api/summaryApi';
 import { getSurvivalBudget } from '../api/budgetApi';
+import { getFinancialGoalsStats } from '../api/financialGoalsApi';
 import { formatCurrency } from '../utils/formatters';
-import { BudgetSummary } from '../types';
+import { BudgetSummary, FinancialGoalsStats } from '../types';
 import AddTransactionModal from '../components/AddTransactionModal';
 
 export default function HomeScreen() {
@@ -32,6 +33,12 @@ export default function HomeScreen() {
     retry: false,
   });
 
+  const { data: goalsStats, isLoading: goalsLoading, refetch: refetchGoals } = useQuery<FinancialGoalsStats | null, Error>({
+    queryKey: ['financialGoalsStats'],
+    queryFn: getFinancialGoalsStats,
+    retry: false,
+  });
+
   React.useEffect(() => {
     if (budgetError && !(budgetError as any)?.response?.data?.message?.includes("No active budget")) {
       console.error('Budget API Error:', budgetError);
@@ -39,7 +46,7 @@ export default function HomeScreen() {
   }, [budgetError]);
 
   const onRefresh = async () => {
-    await Promise.all([refetchExpenses(), refetchIncomes(), refetchBudget()]);
+    await Promise.all([refetchExpenses(), refetchIncomes(), refetchBudget(), refetchGoals()]);
   };
 
   const currentDate = new Date();
@@ -93,7 +100,7 @@ export default function HomeScreen() {
         style={styles.scrollView}
         refreshControl={
           <RefreshControl 
-            refreshing={expensesLoading || incomesLoading || budgetLoading} 
+            refreshing={expensesLoading || incomesLoading || budgetLoading || goalsLoading} 
             onRefresh={onRefresh}
             tintColor="#FF6384"
           />
@@ -181,6 +188,46 @@ export default function HomeScreen() {
           )}
         </View>
 
+        {goalsStats && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Financial Goals</Text>
+            <Card style={styles.summaryCard}>
+              <Card.Content>
+                <View style={styles.summaryRow}>
+                  <View style={styles.summaryItem}>
+                    <Icon name="flag" size={20} color="#4ECDC4" />
+                    <Text style={styles.summaryLabel}>Active Goals</Text>
+                    <Text style={[styles.summaryValue, { color: '#4ECDC4' }]}>
+                      {goalsStats.active}
+                    </Text>
+                  </View>
+                  <View style={styles.summaryItem}>
+                    <Icon name="trending-up" size={20} color="#74B9FF" />
+                    <Text style={styles.summaryLabel}>Progress</Text>
+                    <Text style={[styles.summaryValue, { color: '#74B9FF' }]}>
+                      {Math.round(goalsStats.averageProgress)}%
+                    </Text>
+                  </View>
+                  <View style={styles.summaryItem}>
+                    <Icon name="target" size={20} color="#FDCB6E" />
+                    <Text style={styles.summaryLabel}>Remaining</Text>
+                    <Text style={[styles.summaryValue, { color: '#FDCB6E' }]}>
+                      {formatCurrency(goalsStats.totalRemaining)}
+                    </Text>
+                  </View>
+                </View>
+                <TouchableOpacity 
+                  style={styles.goalsButton}
+                  onPress={() => navigation.navigate('FinancialGoals' as never)}
+                >
+                  <Text style={styles.goalsButtonText}>View All Goals</Text>
+                  <Icon name="arrow-forward" size={16} color="#4ECDC4" />
+                </TouchableOpacity>
+              </Card.Content>
+            </Card>
+          </View>
+        )}
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Last Month Summary</Text>
           <Card style={styles.summaryCard}>
@@ -226,6 +273,14 @@ export default function HomeScreen() {
             subtitle="Record a new expense or income"
             onPress={() => setIsAddTransactionModalVisible(true)}
             color="#FF6384"
+          />
+          
+          <QuickActionCard
+            icon="flag-outline"
+            title="Financial Goals"
+            subtitle="Track and achieve your financial dreams"
+            onPress={() => navigation.navigate('FinancialGoals' as never)}
+            color="#4ECDC4"
           />
           
           <QuickActionCard
@@ -394,5 +449,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+  goalsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: '#333',
+    borderRadius: 8,
+    gap: 8,
+  },
+  goalsButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#4ECDC4',
   },
 });

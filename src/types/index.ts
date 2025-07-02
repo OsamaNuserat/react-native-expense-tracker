@@ -13,6 +13,7 @@ export type RootStackParamList = {
   RecurringPayments: undefined;
   Settings: undefined;
   SpendingAdvisor: undefined;
+  FinancialGoals: undefined;
 };
 
 export interface User {
@@ -137,3 +138,89 @@ export interface CategorySummary {
   category: string;
   total: number;
 }
+
+export interface FinancialGoal {
+  id: number;
+  title: string;
+  description?: string;
+  goalType: GoalType;
+  targetAmount: number;
+  currentAmount: number;
+  targetDate?: string;
+  priority: GoalPriority;
+  isActive: boolean;
+  isCompleted: boolean;
+  completedAt?: string;
+  categoryId?: number;
+  autoContribute: boolean;
+  monthlyTarget?: number;
+  reminderEnabled: boolean;
+  reminderDay?: number;
+  metadata?: any;
+  progress: number;
+  remaining: number;
+  daysLeft?: number;
+  category?: Category;
+  transactions?: GoalTransaction[];
+  milestones?: GoalMilestone[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GoalTransaction {
+  id: number;
+  goalId: number;
+  amount: number;
+  type: TransactionType;
+  description?: string;
+  source?: string;
+  linkedExpenseId?: number;
+  linkedIncomeId?: number;
+  createdAt: string;
+}
+
+export interface GoalMilestone {
+  id: number;
+  goalId: number;
+  title: string;
+  description?: string;
+  targetAmount: number;
+  isReached: boolean;
+  reachedAt?: string;
+  rewardText?: string;
+  createdAt: string;
+}
+
+export interface FinancialGoalsStats {
+  total: number;
+  active: number;
+  completed: number;
+  inactive: number;
+  totalTargetAmount: number;
+  totalCurrentAmount: number;
+  totalRemaining: number;
+  averageProgress: number;
+  goalsByType: Record<string, number>;
+  goalsByPriority: Record<string, number>;
+  totalTransactions: number;
+  recentActivity: any[];
+}
+
+export type GoalType = 
+  | 'EMERGENCY_FUND'
+  | 'VACATION'
+  | 'CAR_PURCHASE'
+  | 'HOUSE_DOWN_PAYMENT'
+  | 'DEBT_PAYOFF'
+  | 'WEDDING'
+  | 'EDUCATION'
+  | 'RETIREMENT'
+  | 'INVESTMENT'
+  | 'HOME_IMPROVEMENT'
+  | 'BUSINESS'
+  | 'GADGET'
+  | 'CUSTOM';
+
+export type GoalPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+
+export type TransactionType = 'CONTRIBUTION' | 'WITHDRAWAL' | 'ADJUSTMENT';
