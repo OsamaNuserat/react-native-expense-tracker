@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text, Card, TextInput, Button, Chip } from 'react-native-paper';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 import { getSurvivalBudget, createSurvivalBudget } from '../api/budgetApi';
 import { BudgetSummary } from '../types';
@@ -12,6 +13,10 @@ export default function BudgetSettingsScreen() {
   const [amount, setAmount] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+  const [selectedStartDate, setSelectedStartDate] = useState(new Date());
+  const [selectedEndDate, setSelectedEndDate] = useState(new Date());
   const queryClient = useQueryClient();
 
   const { 
@@ -58,6 +63,45 @@ export default function BudgetSettingsScreen() {
       amount: parseFloat(amount),
       startDate,
       endDate,
+    });
+  };
+
+  const handleStartDateChange = (event: any, selectedDate?: Date) => {
+    const currentDate = selectedDate || new Date();
+    setShowStartDatePicker(Platform.OS === 'ios');
+    setSelectedStartDate(currentDate);
+    
+    // Format date as YYYY-MM-DD for the API
+    const formattedDate = currentDate.toISOString().split('T')[0];
+    setStartDate(formattedDate);
+  };
+
+  const handleEndDateChange = (event: any, selectedDate?: Date) => {
+    const currentDate = selectedDate || new Date();
+    setShowEndDatePicker(Platform.OS === 'ios');
+    setSelectedEndDate(currentDate);
+    
+    // Format date as YYYY-MM-DD for the API
+    const formattedDate = currentDate.toISOString().split('T')[0];
+    setEndDate(formattedDate);
+  };
+
+  const showStartDatepicker = () => {
+    setShowStartDatePicker(true);
+  };
+
+  const showEndDatepicker = () => {
+    setShowEndDatePicker(true);
+  };
+
+  const formatDisplayDate = (dateString: string, placeholder: string) => {
+    if (!dateString) return placeholder;
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
     });
   };
 
@@ -157,39 +201,41 @@ export default function BudgetSettingsScreen() {
             }}
           />
 
-          <TextInput
-            label="Start Date"
-            value={startDate}
-            onChangeText={setStartDate}
-            mode="outlined"
-            style={styles.input}
-            placeholder="YYYY-MM-DD"
-            theme={{
-              colors: {
-                primary: '#FF6384',
-                background: '#2A2A2A',
-                surface: '#2A2A2A',
-                onSurface: '#FFF',
-              }
-            }}
-          />
+          <Text style={styles.label}>Start Date</Text>
+          <TouchableOpacity onPress={showStartDatepicker} style={styles.dateInput}>
+            <Text style={styles.dateText}>
+              {formatDisplayDate(startDate, 'Select Start Date')}
+            </Text>
+            <Text style={styles.dateIcon}>📅</Text>
+          </TouchableOpacity>
+          {showStartDatePicker && (
+            <DateTimePicker
+              testID="startDateTimePicker"
+              value={selectedStartDate}
+              mode="date"
+              display="default"
+              onChange={handleStartDateChange}
+              minimumDate={new Date()}
+            />
+          )}
 
-          <TextInput
-            label="End Date"
-            value={endDate}
-            onChangeText={setEndDate}
-            mode="outlined"
-            style={styles.input}
-            placeholder="YYYY-MM-DD"
-            theme={{
-              colors: {
-                primary: '#FF6384',
-                background: '#2A2A2A',
-                surface: '#2A2A2A',
-                onSurface: '#FFF',
-              }
-            }}
-          />
+          <Text style={styles.label}>End Date</Text>
+          <TouchableOpacity onPress={showEndDatepicker} style={styles.dateInput}>
+            <Text style={styles.dateText}>
+              {formatDisplayDate(endDate, 'Select End Date')}
+            </Text>
+            <Text style={styles.dateIcon}>📅</Text>
+          </TouchableOpacity>
+          {showEndDatePicker && (
+            <DateTimePicker
+              testID="endDateTimePicker"
+              value={selectedEndDate}
+              mode="date"
+              display="default"
+              onChange={handleEndDateChange}
+              minimumDate={selectedStartDate}
+            />
+          )}
 
           <Button 
             mode="contained" 
@@ -252,8 +298,10 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   label: {
-    color: '#AAA',
+    color: '#FFF',
     fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
   },
   value: {
     color: '#FFF',
@@ -297,5 +345,24 @@ const styles = StyleSheet.create({
   helpText: {
     color: '#AAA',
     lineHeight: 20,
+  },
+  dateInput: {
+    backgroundColor: '#2A2A2A',
+    borderWidth: 1,
+    borderColor: '#FF6384',
+    borderRadius: 8,
+    padding: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    minHeight: 56,
+    marginBottom: 16,
+  },
+  dateText: {
+    color: '#FFF',
+    fontSize: 16,
+  },
+  dateIcon: {
+    fontSize: 20,
   },
 });

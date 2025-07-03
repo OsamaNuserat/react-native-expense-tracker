@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity, Platform } from 'react-native';
 import { Modal, Portal, Card, Button, TextInput, Chip } from 'react-native-paper';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Icon from 'react-native-vector-icons/Ionicons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 import { createFinancialGoal, updateFinancialGoal } from '../api/financialGoalsApi';
 import { formatCurrency } from '../utils/formatters';
@@ -43,6 +44,8 @@ export default function CreateGoalModal({ visible, onDismiss, editGoal = null }:
   const [monthlyTarget, setMonthlyTarget] = useState('');
   const [selectedGoalType, setSelectedGoalType] = useState<GoalType>('EMERGENCY_FUND');
   const [selectedPriority, setSelectedPriority] = useState<GoalPriority>('MEDIUM');
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   const isEditMode = !!editGoal;
 
@@ -52,7 +55,11 @@ export default function CreateGoalModal({ visible, onDismiss, editGoal = null }:
       setTitle(editGoal.title);
       setDescription(editGoal.description || '');
       setTargetAmount(editGoal.targetAmount.toString());
-      setTargetDate(editGoal.targetDate ? editGoal.targetDate.split('T')[0] : '');
+      const targetDateString = editGoal.targetDate ? editGoal.targetDate.split('T')[0] : '';
+      setTargetDate(targetDateString);
+      if (targetDateString) {
+        setSelectedDate(new Date(targetDateString));
+      }
       setMonthlyTarget(editGoal.monthlyTarget?.toString() || '');
       setSelectedGoalType(editGoal.goalType);
       setSelectedPriority(editGoal.priority);
@@ -99,6 +106,31 @@ export default function CreateGoalModal({ visible, onDismiss, editGoal = null }:
     setMonthlyTarget('');
     setSelectedGoalType('EMERGENCY_FUND');
     setSelectedPriority('MEDIUM');
+  };
+
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    const currentDate = selectedDate || new Date();
+    setShowDatePicker(Platform.OS === 'ios');
+    setSelectedDate(currentDate);
+    
+    // Format date as YYYY-MM-DD for the API
+    const formattedDate = currentDate.toISOString().split('T')[0];
+    setTargetDate(formattedDate);
+  };
+
+  const showDatepicker = () => {
+    setShowDatePicker(true);
+  };
+
+  const formatDisplayDate = (dateString: string) => {
+    if (!dateString) return 'Select Target Date (Optional)';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   };
 
   const handleSubmit = () => {
@@ -249,24 +281,22 @@ export default function CreateGoalModal({ visible, onDismiss, editGoal = null }:
               />
 
               {/* Target Date */}
-              <TextInput
-                label="Target Date (Optional)"
-                value={targetDate}
-                onChangeText={setTargetDate}
-                mode="outlined"
-                style={styles.input}
-                theme={{ 
-                  colors: { 
-                    primary: '#4ECDC4',
-                    onSurface: '#FFF',
-                    onSurfaceVariant: '#CCC',
-                    outline: '#666'
-                  } 
-                }}
-                textColor="#FFF"
-                placeholder="YYYY-MM-DD"
-                placeholderTextColor="#999"
-              />
+              <TouchableOpacity onPress={showDatepicker} style={styles.dateInput}>
+                <Text style={styles.dateText}>
+                  {formatDisplayDate(targetDate)}
+                </Text>
+                <Text style={styles.dateIcon}>📅</Text>
+              </TouchableOpacity>
+              {showDatePicker && (
+                <DateTimePicker
+                  testID="dateTimePicker"
+                  value={selectedDate}
+                  mode="date"
+                  display="default"
+                  onChange={handleDateChange}
+                  minimumDate={new Date()}
+                />
+              )}
 
               {/* Monthly Target */}
               <TextInput
@@ -464,5 +494,24 @@ const styles = StyleSheet.create({
   },
   createButton: {
     backgroundColor: '#4ECDC4',
+  },
+  dateInput: {
+    backgroundColor: '#333',
+    borderWidth: 1,
+    borderColor: '#666',
+    borderRadius: 8,
+    padding: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    minHeight: 56,
+    marginBottom: 16,
+  },
+  dateText: {
+    color: '#FFF',
+    fontSize: 16,
+  },
+  dateIcon: {
+    fontSize: 20,
   },
 });

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { Modal, Portal, TextInput, Button, Card, Chip, SegmentedButtons } from 'react-native-paper';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 import { createBill, updateBill } from '../api/billsApi';
 import { fetchCategories } from '../api/categoryApi';
@@ -22,6 +23,8 @@ export default function AddBillModal({
   onSuccess 
 }: AddBillModalProps) {
   const queryClient = useQueryClient();
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [formData, setFormData] = useState<Partial<CreateBillRequest>>({
     name: '',
     description: '',
@@ -86,6 +89,8 @@ export default function AddBillModal({
 
   useEffect(() => {
     if (editBill && visible) {
+      const editDate = new Date(editBill.dueDate);
+      setSelectedDate(editDate);
       setFormData({
         name: editBill.name,
         description: editBill.description || '',
@@ -105,7 +110,21 @@ export default function AddBillModal({
     }
   }, [editBill, visible]);
 
+  // Initialize date when component first loads
+  useEffect(() => {
+    if (visible && !formData.dueDate) {
+      const today = new Date();
+      setSelectedDate(today);
+      setFormData(prev => ({ 
+        ...prev, 
+        dueDate: today.toISOString().split('T')[0] 
+      }));
+    }
+  }, [visible]);
+
   const resetForm = () => {
+    const today = new Date();
+    setSelectedDate(today);
     setFormData({
       name: '',
       description: '',
@@ -113,7 +132,7 @@ export default function AddBillModal({
       amount: undefined,
       isFixedAmount: true,
       categoryId: undefined,
-      dueDate: '',
+      dueDate: today.toISOString().split('T')[0], // Format as YYYY-MM-DD
       frequency: 'MONTHLY',
       dayOfMonth: 1,
       dayOfWeek: 1,
@@ -156,6 +175,31 @@ export default function AddBillModal({
   const handleDismiss = () => {
     resetForm();
     onDismiss();
+  };
+
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    const currentDate = selectedDate || new Date();
+    setShowDatePicker(Platform.OS === 'ios');
+    setSelectedDate(currentDate);
+    
+    // Format date as YYYY-MM-DD for the API
+    const formattedDate = currentDate.toISOString().split('T')[0];
+    setFormData({ ...formData, dueDate: formattedDate });
+  };
+
+  const showDatepicker = () => {
+    setShowDatePicker(true);
+  };
+
+  const formatDisplayDate = (dateString: string) => {
+    if (!dateString) return 'Select Date';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   };
 
   const frequencyOptions = [
@@ -285,15 +329,22 @@ export default function AddBillModal({
 
               <View style={styles.field}>
                 <Text style={styles.label}>Due Date *</Text>
-                <TextInput
-                  value={formData.dueDate}
-                  onChangeText={(text) => setFormData({ ...formData, dueDate: text })}
-                  placeholder="YYYY-MM-DD"
-                  placeholderTextColor="#666"
-                  style={styles.input}
-                  mode="outlined"
-                  theme={{ colors: { outline: '#444', onSurface: '#FFF' } }}
-                />
+                <TouchableOpacity onPress={showDatepicker} style={styles.dateInput}>
+                  <Text style={styles.dateText}>
+                    {formatDisplayDate(formData.dueDate || '')}
+                  </Text>
+                  <Text style={styles.dateIcon}>📅</Text>
+                </TouchableOpacity>
+                {showDatePicker && (
+                  <DateTimePicker
+                    testID="dateTimePicker"
+                    value={selectedDate}
+                    mode="date"
+                    display="default"
+                    onChange={handleDateChange}
+                    minimumDate={new Date()}
+                  />
+                )}
               </View>
 
               <View style={styles.field}>
@@ -534,5 +585,23 @@ const styles = StyleSheet.create({
   submitButton: {
     flex: 1,
     backgroundColor: '#4ECDC4',
+  },
+  dateInput: {
+    backgroundColor: '#333',
+    borderWidth: 1,
+    borderColor: '#666',
+    borderRadius: 8,
+    padding: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    minHeight: 56,
+  },
+  dateText: {
+    color: '#FFF',
+    fontSize: 16,
+  },
+  dateIcon: {
+    fontSize: 20,
   },
 });

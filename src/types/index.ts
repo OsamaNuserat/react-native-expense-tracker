@@ -12,6 +12,7 @@ export type RootStackParamList = {
   BudgetSettings: undefined;
   RecurringPayments: undefined;
   Bills: undefined;
+  BillDetails: { billId: number };
   Settings: undefined;
   SpendingAdvisor: undefined;
   FinancialGoals: undefined;

@@ -51,6 +51,16 @@ export default function BillsScreen() {
       }
       return fetchBills(params);
     },
+    onError: (error: any) => {
+      console.error('Error fetching bills:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: error?.message?.includes('Invalid bill ID') 
+          ? 'Invalid bill data detected. Please contact support.'
+          : 'Failed to load bills. Please try again.',
+      });
+    },
   });
 
   const { data: dashboard, isLoading: dashboardLoading, refetch: refetchDashboard } = useQuery({

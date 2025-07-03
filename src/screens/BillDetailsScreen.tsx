@@ -30,14 +30,35 @@ export default function BillDetailsScreen() {
   
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
 
+  // Debug: Log the billId parameter
+  React.useEffect(() => {
+    console.log('BillDetailsScreen mounted with billId:', billId, 'type:', typeof billId);
+  }, [billId]);
+
+  // Validate billId parameter
+  React.useEffect(() => {
+    if (!billId || typeof billId !== 'number' || billId <= 0) {
+      console.log('Invalid billId detected, navigating back');
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Invalid bill ID. Returning to bills list.',
+      });
+      navigation.goBack();
+      return;
+    }
+  }, [billId, navigation]);
+
   const { data: bill, isLoading: billLoading, refetch: refetchBill } = useQuery({
     queryKey: ['bill', billId],
     queryFn: () => fetchBillById(billId),
+    enabled: !!billId && typeof billId === 'number' && billId > 0,
   });
 
   const { data: paymentsData, isLoading: paymentsLoading, refetch: refetchPayments } = useQuery({
     queryKey: ['bill-payments', billId],
     queryFn: () => fetchBillPayments(billId),
+    enabled: !!billId && typeof billId === 'number' && billId > 0,
   });
 
   const markAsPaidMutation = useMutation({
