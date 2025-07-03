@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Keyboard } from 'react-native';
 import { Modal, Portal, Card, Text, TextInput, Button, SegmentedButtons } from 'react-native-paper';
 import { Category } from '../types';
 
@@ -76,6 +76,7 @@ export default function AddCategoryModal({
               mode="outlined"
               style={styles.input}
               placeholder="e.g., Groceries, Transport, Salary"
+              returnKeyType="done"
               theme={{
                 colors: {
                   primary: '#FF6384',
@@ -95,6 +96,9 @@ export default function AddCategoryModal({
               placeholder="e.g., grocery,food,supermarket"
               multiline
               numberOfLines={2}
+              returnKeyType="done"
+              blurOnSubmit={true}
+              onSubmitEditing={() => Keyboard.dismiss()}
               theme={{
                 colors: {
                   primary: '#FF6384',
