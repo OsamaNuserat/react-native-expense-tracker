@@ -29,9 +29,3 @@ export const logoutAllDevices = async (): Promise<{ message: string }> => {
   const response = await axiosInstance.post('/api/auth/logout-all');
   return response.data;
 };
-
-// Note: /api/auth/me endpoint doesn't exist on backend
-// export const getProfile = async () => {
-//   const response = await axiosInstance.get('/api/auth/me');
-//   return response.data;
-// };

@@ -5,7 +5,7 @@ import { PieChart } from 'react-native-chart-kit';
 import { Dimensions } from 'react-native';
 
 import { fetchExpensesSummary, fetchIncomesSummary } from '../api/summaryApi';
-import { fetchExpensesByCategory } from '../api/categoryApi';
+import { fetchExpensesByCategory, fetchIncomesByCategory } from '../api/transactionApi';
 import { MonthlySummary, CategorySummary } from '../types';
 
 const screenWidth = Dimensions.get('window').width;
@@ -154,7 +154,7 @@ export function IncomesTab() {
 export function ByCategoryTab() {
     const { data, isLoading, isError } = useQuery<CategorySummary[]>({
         queryKey: ['expensesByCategory'],
-        queryFn: fetchExpensesByCategory,
+        queryFn: () => fetchExpensesByCategory(),
     });
 
     if (isLoading) return <Text style={styles.status}>Loading categories…</Text>;

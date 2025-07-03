@@ -4,7 +4,6 @@ export const saveExpoPushToken = async (token: string): Promise<void> => {
   await instance.post('/api/notifications/save-token', { token });
 };
 
-// Backward compatibility - keeping the old function name
 export const saveFCMToken = saveExpoPushToken;
 
 export const sendNotification = async (notification: {

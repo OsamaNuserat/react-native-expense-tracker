@@ -1,9 +1,9 @@
-import instance from './axiosInstance';
+import { fetchExpenseSummary, fetchIncomeSummary } from './transactionApi';
 import { MonthlySummary } from '../types';
 
 export const fetchExpensesSummary = async (): Promise<MonthlySummary[]> => {
   try {
-    const { data } = await instance.get('/api/summary/expenses');
+    const data = await fetchExpenseSummary();
     
     if (Array.isArray(data)) {
       return data;
@@ -17,7 +17,7 @@ export const fetchExpensesSummary = async (): Promise<MonthlySummary[]> => {
 
 export const fetchIncomesSummary = async (): Promise<MonthlySummary[]> => {
   try {
-    const { data } = await instance.get('/api/summary/incomes');
+    const data = await fetchIncomeSummary();
     
     if (Array.isArray(data)) {
       return data;

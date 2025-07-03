@@ -55,7 +55,6 @@ export interface BudgetRecommendation {
   currency: string;
 }
 
-// Get personalized spending suggestions
 export const fetchSpendingSuggestions = async (
   period: string = 'month', 
   limit: number = 5
@@ -71,7 +70,6 @@ export const fetchSpendingSuggestions = async (
     console.info('🧠 Spending Advisor API not available, generating suggestions from data...');
     
     try {
-      // Try to get actual expenses and categories to generate smart suggestions
       const [expensesResponse, categoriesResponse] = await Promise.all([
         instance.get('/api/summary/expenses').catch(() => ({ data: [] })),
         instance.get('/api/categories').catch(() => ({ data: [] }))
@@ -80,7 +78,6 @@ export const fetchSpendingSuggestions = async (
       console.log('🧠 Raw expenses for suggestions:', expensesResponse.data);
       console.log('🧠 Categories for suggestions:', categoriesResponse.data);
       
-      // Filter expenses by time period
       const now = new Date();
       let startDate: Date;
       
@@ -108,7 +105,6 @@ export const fetchSpendingSuggestions = async (
       const expenses = filteredExpenses;
       const categories = categoriesResponse.data;
       
-      // Calculate spending by category
       const categorySpending = categories.reduce((acc: any, category: any) => {
         const total = expenses
           .filter((expense: any) => expense.categoryId === category.id)
@@ -128,7 +124,6 @@ export const fetchSpendingSuggestions = async (
       
       const suggestions: SpendingSuggestion[] = [];
       
-      // Generate suggestions based on spending patterns
       if (categorySpending.dining && categorySpending.dining.total > 200) {
         suggestions.push({
           id: 'dining-1',
@@ -193,7 +188,6 @@ export const fetchSpendingSuggestions = async (
         });
       }
       
-      // If no specific suggestions, provide general advice
       if (suggestions.length === 0) {
         suggestions.push({
           id: 'general-1',
@@ -212,7 +206,6 @@ export const fetchSpendingSuggestions = async (
     } catch (calculationError: any) {
       console.warn('🧠 Failed to generate suggestions from data:', calculationError.message);
       
-      // Return basic suggestions as fallback
       return [
         {
           id: 'fallback-1',
@@ -228,7 +221,6 @@ export const fetchSpendingSuggestions = async (
   }
 };
 
-// Get spending overview and dashboard data
 export const fetchAdvisorOverview = async (period: string = 'month'): Promise<AdvisorOverview> => {
   try {
     console.log('🧠 Fetching advisor overview...');
@@ -241,7 +233,6 @@ export const fetchAdvisorOverview = async (period: string = 'month'): Promise<Ad
     console.info('🧠 Advisor Overview API not available, trying to calculate from raw data...');
     
     try {
-      // Try to get actual expenses and budget data
       const [expensesResponse, budgetResponse] = await Promise.all([
         instance.get('/api/summary/expenses').catch(() => ({ data: [] })),
         instance.get('/api/budget').catch(() => ({ data: null }))
@@ -250,7 +241,6 @@ export const fetchAdvisorOverview = async (period: string = 'month'): Promise<Ad
       console.log('🧠 Raw expenses data:', expensesResponse.data);
       console.log('🧠 Raw budget data:', budgetResponse.data);
       
-      // Calculate spending for the selected period
       const now = new Date();
       let startDate: Date;
       
@@ -311,7 +301,6 @@ export const fetchAdvisorOverview = async (period: string = 'month'): Promise<Ad
     } catch (calculationError: any) {
       console.warn('🧠 Failed to calculate overview from raw data:', calculationError.message);
       
-      // Return basic mock data as fallback
       return {
         currentSpending: {
           amount: 0,
@@ -331,7 +320,6 @@ export const fetchAdvisorOverview = async (period: string = 'month'): Promise<Ad
   }
 };
 
-// Take action on a suggestion
 export const takeSuggestionAction = async (
   suggestionId: string, 
   action: 'accept' | 'dismiss' | 'learn_more'
@@ -341,13 +329,12 @@ export const takeSuggestionAction = async (
   } catch (error: any) {
     if (error?.response?.status === 404) {
       console.info('Suggestion action API not available yet');
-      return; // Mock success for development
+      return;
     }
     throw error;
   }
 };
 
-// Get contextual spending tips
 export const fetchSpendingTips = async (): Promise<AdvisorTip[]> => {
   try {
     const { data } = await instance.get('/api/advisor/tips');
@@ -374,7 +361,6 @@ export const fetchSpendingTips = async (): Promise<AdvisorTip[]> => {
   }
 };
 
-// Get detailed spending insights
 export const fetchSpendingInsights = async (): Promise<AdvisorInsight[]> => {
   try {
     const { data } = await instance.get('/api/advisor/insights');
@@ -403,7 +389,6 @@ export const fetchSpendingInsights = async (): Promise<AdvisorInsight[]> => {
   }
 };
 
-// Get budget recommendations
 export const fetchBudgetRecommendations = async (): Promise<BudgetRecommendation[]> => {
   try {
     const { data } = await instance.get('/api/advisor/budget-recommendations');

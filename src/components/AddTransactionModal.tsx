@@ -31,7 +31,6 @@ export default function AddTransactionModal({
   
   const [type, setType] = useState<'expense' | 'income'>('expense');
   const [amount, setAmount] = useState('');
-  const [description, setDescription] = useState('');
   const [merchant, setMerchant] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
 
@@ -87,7 +86,6 @@ export default function AddTransactionModal({
 
   const handleClose = () => {
     setAmount('');
-    setDescription('');
     setMerchant('');
     setSelectedCategoryId(null);
     setType('expense');
@@ -95,7 +93,7 @@ export default function AddTransactionModal({
   };
 
   const handleSubmit = () => {
-    if (!amount || !description || !selectedCategoryId) {
+    if (!amount || !merchant || !selectedCategoryId) {
       Toast.show({
         type: 'error',
         text1: 'Validation Error',
@@ -116,10 +114,8 @@ export default function AddTransactionModal({
 
     const transactionData = {
       amount: numericAmount,
-      description,
       merchant: merchant || null,
       categoryId: selectedCategoryId,
-      transactionDate: new Date().toISOString(),
     };
 
     if (type === 'expense') {
@@ -191,28 +187,13 @@ export default function AddTransactionModal({
                 left={<TextInput.Icon icon="currency-usd" />}
               />
 
-              {/* Description */}
-              <Text style={styles.sectionLabel}>Description *</Text>
-              <TextInput
-                mode="outlined"
-                value={description}
-                onChangeText={setDescription}
-                placeholder="Enter description"
-                style={styles.input}
-                theme={{
-                  colors: {
-                    primary: type === 'expense' ? '#FF6384' : '#4CAF50',
-                  },
-                }}
-              />
-
-              {/* Merchant */}
-              <Text style={styles.sectionLabel}>Merchant/Source</Text>
+              {/* Merchant/Source */}
+              <Text style={styles.sectionLabel}>Merchant/Source *</Text>
               <TextInput
                 mode="outlined"
                 value={merchant}
                 onChangeText={setMerchant}
-                placeholder="Optional"
+                placeholder="Enter merchant or source"
                 style={styles.input}
                 theme={{
                   colors: {

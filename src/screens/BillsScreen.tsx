@@ -40,7 +40,7 @@ export default function BillsScreen() {
   const [editBill, setEditBill] = useState<Bill | null>(null);
   const [activeFilter, setActiveFilter] = useState<'all' | 'upcoming' | 'overdue'>('all');
 
-  const { data: billsData, isLoading: billsLoading, refetch: refetchBills } = useQuery({
+  const { data: billsData, isLoading: billsLoading, refetch: refetchBills, error: billsError } = useQuery({
     queryKey: ['bills', activeFilter],
     queryFn: () => {
       const params: any = {};
@@ -51,22 +51,25 @@ export default function BillsScreen() {
       }
       return fetchBills(params);
     },
-    onError: (error: any) => {
-      console.error('Error fetching bills:', error);
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: error?.message?.includes('Invalid bill ID') 
-          ? 'Invalid bill data detected. Please contact support.'
-          : 'Failed to load bills. Please try again.',
-      });
-    },
   });
 
   const { data: dashboard, isLoading: dashboardLoading, refetch: refetchDashboard } = useQuery({
     queryKey: ['bills-dashboard'],
     queryFn: fetchBillsDashboard,
   });
+
+  React.useEffect(() => {
+    if (billsError) {
+      console.error('Error fetching bills:', billsError);
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: billsError?.message?.includes('Invalid bill ID') 
+          ? 'Invalid bill data detected. Please contact support.'
+          : 'Failed to load bills. Please try again.',
+      });
+    }
+  }, [billsError]);
 
   const markAsPaidMutation = useMutation({
     mutationFn: ({ billId, amount }: { billId: number; amount: number }) =>

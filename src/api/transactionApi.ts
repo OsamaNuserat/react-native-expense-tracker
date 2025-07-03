@@ -1,174 +1,71 @@
 import instance from './axiosInstance';
 import { Expense, Income } from '../types';
 
-// IMPORTANT: Current backend structure
-// - /api/summary/expenses and /api/summary/incomes return monthly aggregated data
-// - These are used for analytics, charts, and summaries
-// - For individual transaction lists (TransactionsScreen), we need separate endpoints
-// - Consider adding /api/transactions/expenses and /api/transactions/incomes for detailed listings
-
-// Fetch expenses from summary endpoint (aligned with backend structure)
-export const fetchExpenses = async (): Promise<Expense[]> => {
+export const fetchExpenses = async (params?: {
+  page?: number;
+  limit?: number;
+  startDate?: string;
+  endDate?: string;
+  categoryId?: number;
+  merchant?: string;
+}): Promise<Expense[]> => {
   try {
-    console.log('💰 Fetching expenses from summary endpoint...');
-    const { data } = await instance.get('/api/summary/expenses');
-    console.log('💰 Expenses summary response:', data);
-    
-    // Handle array of monthly summaries from your backend
-    if (Array.isArray(data) && data.length > 0) {
-      console.log('💰 Converting monthly summaries to transaction list:', data);
-      
-      // Calculate totals from monthly data
-      const totalAmount = data.reduce((sum, monthlyData) => sum + (monthlyData.total || 0), 0);
-      const monthCount = data.length;
-      
-      // Create mock transactions based on summary with varied amounts
-      const mockTransactions: Expense[] = [];
-      const estimatedTransactionCount = Math.max(monthCount * 8, 5); // Estimate ~8 transactions per month
-      
-      // Common expense merchants for variety
-      const merchants = [
-        'Grocery Store', 'Gas Station', 'Restaurant', 'Coffee Shop', 'Pharmacy',
-        'Supermarket', 'Mall', 'Online Store', 'Taxi', 'Uber'
-      ];
-      
-      for (let i = 0; i < Math.min(estimatedTransactionCount, 15); i++) {
-        // Vary the amounts to be more realistic
-        const randomFactor = 0.3 + Math.random() * 1.4; // 0.3 to 1.7
-        const baseAmount = totalAmount / estimatedTransactionCount;
-        const amount = Math.round(baseAmount * randomFactor * 100) / 100;
-        
-        // Vary the dates to show recent transactions
-        const daysAgo = Math.floor(Math.random() * 30);
-        const transactionDate = new Date();
-        transactionDate.setDate(transactionDate.getDate() - daysAgo);
-        
-        mockTransactions.push({
-          id: 1000 + i, // Use unique IDs starting from 1000
-          amount: amount,
-          merchant: merchants[i % merchants.length],
-          categoryId: 1,
-          createdAt: transactionDate.toISOString(),
-          userId: 1,
-          category: {
-            id: 1,
-            name: 'General',
-            keywords: '',
-            type: 'EXPENSE',
-            userId: 1,
-            createdAt: new Date().toISOString()
-          }
-        });
-      }
-      
-      console.log('💰 Generated mock transactions:', mockTransactions.length);
-      return mockTransactions;
-    }
-    
-    // Legacy: Handle single summary object (if backend structure changes)
-    if (data.totalAmount !== undefined && data.count !== undefined) {
-      console.log('💰 Converting single summary to transaction list:', data);
-      // ...existing single summary logic would go here if needed...
-    }
-    
-    // Handle array response (if backend returns transaction list)
-    const expenses = Array.isArray(data) ? data : (data.data || []);
-    console.log('💰 Processed expenses:', expenses.length, 'items');
-    return expenses;
+    const { data } = await instance.get('/api/expenses', { params });
+    return data;
   } catch (error: any) {
-    console.warn('💰 Expenses API failed:', error.response?.status, error.message);
+    console.error('Failed to fetch expenses:', error);
     return [];
   }
 };
 
-export const fetchIncomes = async (): Promise<Income[]> => {
+export const fetchIncomes = async (params?: {
+  page?: number;
+  limit?: number;
+  startDate?: string;
+  endDate?: string;
+  categoryId?: number;
+  source?: string;
+}): Promise<Income[]> => {
   try {
-    console.log('💵 Fetching incomes from summary endpoint...');
-    const { data } = await instance.get('/api/summary/incomes');
-    console.log('💵 Incomes summary response:', data);
-    
-    // Handle array of monthly summaries from your backend
-    if (Array.isArray(data) && data.length > 0) {
-      console.log('💵 Converting monthly summaries to transaction list:', data);
-      
-      // Calculate totals from monthly data
-      const totalAmount = data.reduce((sum, monthlyData) => sum + (monthlyData.total || 0), 0);
-      const monthCount = data.length;
-      
-      // Create mock transactions based on EXACT summary amounts
-      const mockTransactions: Income[] = [];
-      
-      // Use actual amounts from your DB data to be precise
-      const actualAmounts = [1500, 500, 400, 200, 350, 180]; // From your database
-      const actualSources = [
-        'Tech Solutions Ltd', 'Ahmad Ali', 'Website Project', 
-        'Stock Dividend', 'Mobile App Project', 'Crypto Returns'
-      ];
-      
-      // Create transactions with exact amounts
-      for (let i = 0; i < actualAmounts.length; i++) {
-        // Use exact dates from your data
-        const dates = [
-          '2025-06-22T12:06:43.98Z', '2025-06-12T12:06:43.98Z', '2025-06-29T12:06:43.98Z',
-          '2025-06-27T12:06:43.98Z', '2025-06-25T12:06:43.98Z', '2025-06-18T12:06:43.98Z'
-        ];
-        
-        mockTransactions.push({
-          id: 2000 + i, // Use unique IDs starting from 2000
-          amount: actualAmounts[i],
-          merchant: actualSources[i],
-          categoryId: 1,
-          createdAt: dates[i],
-          userId: 1,
-          category: {
-            id: 1,
-            name: 'Salary',
-            keywords: '',
-            type: 'INCOME',
-            userId: 1,
-            createdAt: new Date().toISOString()
-          }
-        });
-      }
-      
-      console.log('💵 Generated exact mock incomes:', mockTransactions.length, 'Total:', mockTransactions.reduce((sum, t) => sum + t.amount, 0));
-      return mockTransactions;
-    }
-    
-    // Legacy: Handle single summary object (if backend structure changes)
-    if (data.totalAmount !== undefined && data.count !== undefined) {
-      console.log('💵 Converting single summary to transaction list:', data);
-      // ...existing single summary logic would go here if needed...
-    }
-    
-    // Handle array response (if backend returns transaction list)
-    const incomes = Array.isArray(data) ? data : (data.data || []);
-    console.log('💵 Processed incomes:', incomes.length, 'items');
-    return incomes;
+    const { data } = await instance.get('/api/incomes', { params });
+    return data;
   } catch (error: any) {
-    console.warn('💵 Incomes API failed:', error.response?.status, error.message);
+    console.error('Failed to fetch incomes:', error);
     return [];
   }
 };
 
-// Note: Create/Update/Delete operations would need separate endpoints
-// These currently use the old direct endpoints and may need backend updates
+export const fetchExpenseById = async (id: number): Promise<Expense> => {
+  const { data } = await instance.get(`/api/expenses/${id}`);
+  return data;
+};
+
+export const fetchIncomeById = async (id: number): Promise<Income> => {
+  const { data } = await instance.get(`/api/incomes/${id}`);
+  return data;
+};
+
 export const createExpense = async (expense: Omit<Expense, 'id' | 'userId' | 'createdAt'>): Promise<Expense> => {
   const { data } = await instance.post('/api/expenses', expense);
   return data;
 };
 
 export const createIncome = async (income: Omit<Income, 'id' | 'userId' | 'createdAt'>): Promise<Income> => {
-  const { data } = await instance.post('/api/incomes', income);
+  const { data } = await instance.post('/api/incomes', {
+    ...income,
+    source: income.merchant
+  });
   return data;
 };
 
-export const updateExpense = async (id: number, expense: Partial<Omit<Expense, 'id' | 'userId' | 'createdAt'>>): Promise<void> => {
-  await instance.put(`/api/expenses/${id}`, expense);
+export const updateExpense = async (id: number, expense: Partial<Omit<Expense, 'id' | 'userId' | 'createdAt'>>): Promise<Expense> => {
+  const { data } = await instance.put(`/api/expenses/${id}`, expense);
+  return data;
 };
 
-export const updateIncome = async (id: number, income: Partial<Omit<Income, 'id' | 'userId' | 'createdAt'>>): Promise<void> => {
-  await instance.put(`/api/incomes/${id}`, income);
+export const updateIncome = async (id: number, income: Partial<Omit<Income, 'id' | 'userId' | 'createdAt'>>): Promise<Income> => {
+  const { data } = await instance.put(`/api/incomes/${id}`, income);
+  return data;
 };
 
 export const deleteExpense = async (id: number): Promise<void> => {
@@ -180,32 +77,115 @@ export const deleteIncome = async (id: number): Promise<void> => {
 };
 
 export const createTransactionFromMessage = async (messageId: string, categoryId: number): Promise<any> => {
-  // This endpoint would handle creating an expense/income record from a categorized message
-  const { data } = await instance.post('/api/transactions', {
-    messageId,
-    categoryId,
-  });
-  return data;
-};
-
-// Combined transaction fetcher (for Transaction screen convenience)
-export const fetchAllTransactions = async (): Promise<{ expenses: Expense[], incomes: Income[] }> => {
   try {
-    console.log('🔄 Fetching all transactions from summary endpoints...');
-    const [expenses, incomes] = await Promise.all([
-      fetchExpenses(),
-      fetchIncomes()
+    const [messageResponse, categoriesResponse] = await Promise.all([
+      instance.get(`/api/messages/${messageId}`),
+      instance.get('/api/categories')
     ]);
     
-    console.log('🔄 All transactions loaded:', {
-      expenses: expenses.length,
-      incomes: incomes.length,
-      total: expenses.length + incomes.length
-    });
+    const message = messageResponse.data;
+    const categories = categoriesResponse.data;
+    
+    const category = categories.find((cat: any) => cat.id === categoryId);
+    if (!category) {
+      throw new Error(`Category with ID ${categoryId} not found`);
+    }
+    
+    const isExpense = category.type === 'EXPENSE';
+    
+    if (isExpense) {
+      const { data } = await instance.post('/api/expenses', {
+        categoryId,
+        amount: message.parsedData?.amount || 0,
+        merchant: message.parsedData?.merchant || 'Unknown',
+        createdAt: message.parsedData?.timestamp || message.createdAt
+      });
+      return data;
+    } else {
+      const { data } = await instance.post('/api/incomes', {
+        categoryId,
+        amount: message.parsedData?.amount || 0,
+        source: message.parsedData?.source || message.parsedData?.merchant || 'Unknown',
+        createdAt: message.parsedData?.timestamp || message.createdAt
+      });
+      return data;
+    }
+  } catch (error) {
+    console.error('Failed to create transaction from message:', error);
+    throw error;
+  }
+};
+
+export const fetchAllTransactions = async (params?: {
+  page?: number;
+  limit?: number;
+  startDate?: string;
+  endDate?: string;
+  categoryId?: number;
+}): Promise<{ expenses: Expense[], incomes: Income[] }> => {
+  try {
+    const [expenses, incomes] = await Promise.all([
+      fetchExpenses(params),
+      fetchIncomes(params)
+    ]);
     
     return { expenses, incomes };
   } catch (error: any) {
-    console.error('🔄 Failed to fetch all transactions:', error);
+    console.error('Failed to fetch all transactions:', error);
     return { expenses: [], incomes: [] };
+  }
+};
+
+export const fetchExpenseSummary = async (params?: {
+  startDate?: string;
+  endDate?: string;
+  period?: 'day' | 'week' | 'month' | 'year';
+}): Promise<any> => {
+  try {
+    const { data } = await instance.get('/api/summary/expenses', { params });
+    return data;
+  } catch (error: any) {
+    console.error('Failed to fetch expense summary:', error);
+    return null;
+  }
+};
+
+export const fetchIncomeSummary = async (params?: {
+  startDate?: string;
+  endDate?: string;
+  period?: 'day' | 'week' | 'month' | 'year';
+}): Promise<any> => {
+  try {
+    const { data } = await instance.get('/api/summary/incomes', { params });
+    return data;
+  } catch (error: any) {
+    console.error('Failed to fetch income summary:', error);
+    return null;
+  }
+};
+
+export const fetchExpensesByCategory = async (params?: {
+  startDate?: string;
+  endDate?: string;
+}): Promise<any> => {
+  try {
+    const { data } = await instance.get('/api/summary/expenses/by-category', { params });
+    return data;
+  } catch (error: any) {
+    console.error('Failed to fetch expenses by category:', error);
+    return null;
+  }
+};
+
+export const fetchIncomesByCategory = async (params?: {
+  startDate?: string;
+  endDate?: string;
+}): Promise<any> => {
+  try {
+    const { data } = await instance.get('/api/summary/incomes/by-category', { params });
+    return data;
+  } catch (error: any) {
+    console.error('Failed to fetch incomes by category:', error);
+    return null;
   }
 };

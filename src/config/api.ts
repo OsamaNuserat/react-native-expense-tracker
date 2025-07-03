@@ -1,19 +1,11 @@
 // Centralized API configuration
 export const API_CONFIG = {
-  // Production URL
-  // BASE_URL: 'https://expense-tracker-q432.onrender.com',
-  
-  // Local development server (commented out)
   BASE_URL: 'http://192.168.15.249:3000',
   
-  // API endpoints
   ENDPOINTS: {
     PARSE_SMS: '/api/parse-sms',
-    // Summary-based endpoints (aligned with backend structure)
-    EXPENSES: '/api/summary/expenses',
-    INCOMES: '/api/summary/incomes',
-    EXPENSES_BY_CATEGORY: '/api/summary/expenses-by-category',
-    INCOMES_BY_CATEGORY: '/api/summary/incomes-by-category',
+    EXPENSES: '/api/expenses',
+    INCOMES: '/api/incomes',
     CATEGORIES: '/api/categories',
     BUDGET: '/api/budget',
     MESSAGES: '/api/messages',
@@ -21,6 +13,10 @@ export const API_CONFIG = {
     SUMMARY: '/api/summary',
     RECURRING_PAYMENTS: '/api/recurring-payments',
     BILLS: '/api/bills',
+    SUMMARY_EXPENSES: '/api/summary/expenses',
+    SUMMARY_INCOMES: '/api/summary/incomes',
+    EXPENSES_BY_CATEGORY: '/api/summary/expenses/by-category',
+    INCOMES_BY_CATEGORY: '/api/summary/incomes/by-category',
     AUTH: {
       LOGIN: '/api/auth/login',
       REGISTER: '/api/auth/register',

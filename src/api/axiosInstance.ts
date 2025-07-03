@@ -145,17 +145,11 @@ axiosInstance.interceptors.response.use(
       }
     }
 
-    // Handle specific errors more gracefully
     const errorMessage = error.response?.data?.message || error.message;
-    const errorData = typeof error.response?.data === 'string' ? error.response.data : '';
     const isNoActiveBudgetError = errorMessage === "No active budget";
-    const isEndpointNotFoundError = errorData.includes("Cannot GET /api/summary/expenses") || 
-                                   errorData.includes("Cannot GET /api/summary/incomes");
     
     if (isNoActiveBudgetError) {
       console.log('ℹ️ No active budget found - this is normal for new users');
-    } else if (isEndpointNotFoundError) {
-      console.log('ℹ️ Transaction endpoints not implemented yet - using mock data');
     } else {
       console.error('API Error:', error.response?.data || error.message);
     }

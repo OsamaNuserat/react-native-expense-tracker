@@ -18,15 +18,15 @@ export default function TransactionsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddTransactionModalVisible, setIsAddTransactionModalVisible] = useState(false);
 
-  const { data: expenses, isLoading: expensesLoading, error: expensesError, refetch: refetchExpenses } = useQuery<Expense[]>({
+  const { data: expenses, isLoading: expensesLoading, error: expensesError, refetch: refetchExpenses } = useQuery({
     queryKey: ['expenses'],
-    queryFn: fetchExpenses,
+    queryFn: () => fetchExpenses(),
     retry: false,
   });
 
-  const { data: incomes, isLoading: incomesLoading, error: incomesError, refetch: refetchIncomes } = useQuery<Income[]>({
+  const { data: incomes, isLoading: incomesLoading, error: incomesError, refetch: refetchIncomes } = useQuery({
     queryKey: ['incomes'],
-    queryFn: fetchIncomes,
+    queryFn: () => fetchIncomes(),
     retry: false,
   });
 
@@ -36,15 +36,14 @@ export default function TransactionsScreen() {
     retry: false,
   });
 
-  // Handle API errors gracefully
   React.useEffect(() => {
-    if (expensesError && !(expensesError as any)?.response?.data?.includes?.("Cannot GET /api/summary/expenses")) {
+    if (expensesError) {
       console.error('Expenses API Error:', expensesError);
     }
   }, [expensesError]);
 
   React.useEffect(() => {
-    if (incomesError && !(incomesError as any)?.response?.data?.includes?.("Cannot GET /api/summary/incomes")) {
+    if (incomesError) {
       console.error('Incomes API Error:', incomesError);
     }
   }, [incomesError]);
@@ -56,20 +55,23 @@ export default function TransactionsScreen() {
   };
 
   const getAllTransactions = (): Transaction[] => {
-    // Filter out any null/undefined items and add type property
-    const expenseTransactions: Transaction[] = (expenses || [])
-      .filter(expense => expense && expense.id)
-      .map((expense: Expense) => ({
-        ...expense,
-        type: 'expense' as const,
-      }));
+    const expenseTransactions: Transaction[] = Array.isArray(expenses) 
+      ? expenses
+          .filter((expense: any) => expense && expense.id)
+          .map((expense: Expense) => ({
+            ...expense,
+            type: 'expense' as const,
+          }))
+      : [];
     
-    const incomeTransactions: Transaction[] = (incomes || [])
-      .filter(income => income && income.id)
-      .map((income: Income) => ({
-        ...income,
-        type: 'income' as const,
-      }));
+    const incomeTransactions: Transaction[] = Array.isArray(incomes)
+      ? incomes
+          .filter((income: any) => income && income.id)
+          .map((income: Income) => ({
+            ...income,
+            type: 'income' as const,
+          }))
+      : [];
 
     const allTransactions = [...expenseTransactions, ...incomeTransactions];
     return allTransactions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
