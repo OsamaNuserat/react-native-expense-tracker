@@ -97,6 +97,24 @@ export default function MoreScreen() {
           >
             Recurring Payments
           </Button>
+
+          <Button 
+            mode="outlined" 
+            onPress={() => navigation.navigate('Bills')}
+            style={styles.button}
+            icon="receipt"
+          >
+            Bills & Reminders
+          </Button>
+
+          <Button 
+            mode="outlined" 
+            onPress={() => navigation.navigate('FinancialGoals')}
+            style={styles.button}
+            icon="flag"
+          >
+            Financial Goals
+          </Button>
         </Card.Content>
       </Card>
 

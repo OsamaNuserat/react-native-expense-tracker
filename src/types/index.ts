@@ -11,6 +11,7 @@ export type RootStackParamList = {
   Categories: undefined;
   BudgetSettings: undefined;
   RecurringPayments: undefined;
+  Bills: undefined;
   Settings: undefined;
   SpendingAdvisor: undefined;
   FinancialGoals: undefined;
@@ -224,3 +225,138 @@ export type GoalType =
 export type GoalPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 
 export type TransactionType = 'CONTRIBUTION' | 'WITHDRAWAL' | 'ADJUSTMENT';
+
+// Bill Management Types
+export type BillFrequency = 'WEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'YEARLY' | 'CUSTOM';
+
+export interface Bill {
+  id: number;
+  userId: number;
+  name: string;
+  description?: string;
+  payee: string;
+  amount?: number;
+  isFixedAmount: boolean;
+  categoryId?: number;
+  dueDate: string;
+  frequency: BillFrequency;
+  dayOfMonth?: number;
+  dayOfWeek?: number;
+  isActive: boolean;
+  autoReminder: boolean;
+  reminderDays: number[];
+  nextDueDate: string;
+  isOverdue: boolean;
+  overdueByDays: number;
+  lastPaidDate?: string;
+  lastPaidAmount?: number;
+  category?: Category;
+  paymentHistory?: BillPayment[];
+  reminders?: BillReminder[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BillPayment {
+  id: number;
+  billId: number;
+  amount: number;
+  paidDate: string;
+  wasOnTime: boolean;
+  daysLate: number;
+  notes?: string;
+  paymentMethod?: string;
+  confirmationCode?: string;
+  createdAt: string;
+}
+
+export interface BillReminder {
+  id: number;
+  billId: number;
+  reminderDate: string;
+  daysBefore: number;
+  isSent: boolean;
+  sentAt?: string;
+  reminderType: 'UPCOMING' | 'DUE_TODAY' | 'OVERDUE';
+  createdAt: string;
+}
+
+export interface CreateBillRequest {
+  name: string;
+  description?: string;
+  payee: string;
+  amount?: number;
+  isFixedAmount: boolean;
+  categoryId?: number;
+  dueDate: string;
+  frequency: BillFrequency;
+  dayOfMonth?: number;
+  dayOfWeek?: number;
+  autoReminder?: boolean;
+  reminderDays?: number[];
+}
+
+export interface UpdateBillRequest extends Partial<CreateBillRequest> {}
+
+export interface BillsDashboard {
+  totalBills: number;
+  activeBills: number;
+  overdueBills: {
+    count: number;
+    totalAmount: number;
+    bills: Array<{
+      id: number;
+      name: string;
+      payee: string;
+      amount?: number;
+      overdueByDays: number;
+      category?: string;
+    }>;
+  };
+  dueThisWeek: {
+    count: number;
+    totalAmount: number;
+    bills: Array<{
+      id: number;
+      name: string;
+      payee: string;
+      amount?: number;
+      nextDueDate: string;
+      daysUntilDue: number;
+      category?: string;
+    }>;
+  };
+  dueThisMonth: number;
+  totalPaidThisMonth: number;
+  averageMonthlyAmount: number;
+  upcomingPayments: number;
+}
+
+export interface BillCalendarEvent {
+  id: number;
+  title: string;
+  start: string;
+  end: string;
+  allDay: boolean;
+  description: string;
+  extendedProps: {
+    billId: number;
+    payee: string;
+    amount?: number;
+    isFixedAmount: boolean;
+    category?: Category;
+    frequency: BillFrequency;
+    isOverdue: boolean;
+    overdueByDays: number;
+  };
+  backgroundColor: string;
+  borderColor: string;
+  textColor: string;
+}
+
+export interface BillsCalendarResponse {
+  events: BillCalendarEvent[];
+  totalBills: number;
+  overdueBills: number;
+  upcomingBills: number;
+}

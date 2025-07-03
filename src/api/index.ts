@@ -5,4 +5,5 @@ export * from './transactionApi';
 export * from './budgetApi';
 export * from './notificationApi';
 export * from './recurringPaymentApi';
+export * from './billsApi';
 export * from '../config/api';

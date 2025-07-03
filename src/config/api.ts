@@ -20,6 +20,7 @@ export const API_CONFIG = {
     NOTIFICATIONS: '/api/notifications',
     SUMMARY: '/api/summary',
     RECURRING_PAYMENTS: '/api/recurring-payments',
+    BILLS: '/api/bills',
     AUTH: {
       LOGIN: '/api/auth/login',
       REGISTER: '/api/auth/register',
